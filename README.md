@@ -1,4 +1,4 @@
-## Basebase Broadcase Board
+## Baseball Broadcast Board
 
 ### はじめに
 

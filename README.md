@@ -15,3 +15,8 @@ Vue.jsを使っているので、特にWebサーバを立ち上げなくても�
 ブラウザ上で各種情報を入力し、チェックボックス等でアイテムを操作すると、その情報が集約されSVGイメージとして表示される。
 
 ![全体イメージ](doc/board_all.png)
+
+### 利用しているOSS
+
+* [Vue.js v3.1.5](https://github.com/vuejs/core/releases/tag/v3.1.5) - [MIT License](https://github.com/vuejs/core/blob/v3.1.5/LICENSE)
+* [Bootstrap v5.0.2](https://github.com/twbs/bootstrap/releases/tag/v5.0.2) - [MIT License](https://github.com/twbs/bootstrap/blob/v5.0.2/LICENSE)

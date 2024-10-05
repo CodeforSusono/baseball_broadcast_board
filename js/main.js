@@ -1,22 +1,31 @@
 const app = Vue.createApp({
   data: () => ({
     message: 'Hello Score Board !',
-    game_title: "第21回 DREAM-CUP 第1試合",
+    game_title: "第21回　DREAM-CUP　2日目　　第1試合",
     team_top: "Team A",
     team_bottom: "Team B",
     game_inning: 0,
-    last_inning: 5,
+    last_inning: 9,
     top: false,
     first_base: false,
     second_base: false,
     third_base: false,
     ball_cnt: 0,
-    strike_cnt: 0.,
+    strike_cnt: 0,
     out_cnt: 0,
     score_top: 0,
     score_bottom: 0,
     game_start: false,
-    game_array: ["試合前",1,2,3,4,5,"試合終了"]
+    game_array: ["試合前",1,2,3,4,5,6,7,8,9,"試合終了"],
+    team_items: ["  ","静岡","埼玉","千葉","阪神","東京B","横浜","東京G","龍野"],
+    title_items: ["  ",
+      "第21回　DREAM-CUP　2日目　　第1試合",
+      "第21回　DREAM-CUP　2日目　　第2試合",
+      "第21回　DREAM-CUP　2日目　　第3試合(3位決定戦)",
+      "第21回　DREAM-CUP　2日目　　第4試合(決勝戦)",
+      "第21回　DREAM-CUP　1日目　　第1試合",
+      "第21回　DREAM-CUP　1日目　　第2試合"
+    ]
   }),
   methods: {
     initParams: function() {
@@ -81,18 +90,6 @@ const app = Vue.createApp({
         this.out_cnt--
       }
     },
-    gameStatusUp: function() {
-      if (this.game_inning < this.last_inning+1) {
-        this.game_inning++
-        this.initParams()
-      }
-    },
-    gameStatusDown: function() {
-      if (this.game_inning > 0) {
-        this.game_inning--
-        this.initParams()
-      } 
-    },
     gameForward: function() {
       if (this.game_inning <= this.last_inning) {
         if (this.top) {
@@ -119,6 +116,19 @@ const app = Vue.createApp({
         }
       }
     },
+    gameInit: function() {
+      this.game_inning = 0
+      this.top = false
+      this.initParams()
+    },
+    gameStart: function() {
+      this.game_inning = 1
+      this.top = true
+      this.initParams()
+    },
+    gameEnd: function() {
+      this.game_inning = this.last_inning+1
+    },
     incrementScoreTop: function() {
       this.score_top++
       console.log(this.score_top)
@@ -137,6 +147,45 @@ const app = Vue.createApp({
         this.score_bottom--
       }
     },
+    batterHit: function() {
+      this.ball_cnt=0
+      this.strike_cnt=0
+      this.runnerForward()
+    },
+    batterOut: function() {
+      this.ball_cnt=0
+      this.strike_cnt=0
+      if (this.out_cnt<2) {
+        this.out_cnt++
+      } else {
+        this.gameForward()
+      }
+    },
+    runnerForward: function() {
+      if (!this.first_base) {
+        this.first_base=true
+      }
+      else {
+        if (!this.second_base) {
+          this.second_base=true
+          this.first_base=true
+        }
+        else {
+          if (!this.third_base) {
+            this.third_base=true
+            this.second_base=true
+            this.first_base=true
+          }
+          else {
+            if (this.top) {
+              this.score_top++
+            } else {
+              this.score_bottom++
+            }
+          }
+        }
+      }
+    }
   }
 })
 app.mount('#app')

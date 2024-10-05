@@ -11,56 +11,247 @@
   -->
   <link rel="stylesheet" href="css/main.css">
 </head>
-<body class="bg-success">
+<body class="bg-custom-class text-white">
   <div id="app">
     <section class="jumbotron">
       <div class="container">
+        <br />
         <div class="row">
-          <div class="col-sm-2 align-self-center">
-            <img src="img/c4s.png" alt="Code for SUSONO" width="100">
+          <div class="offset-sm-8 col-sm-2">
+            <div class="badge bg-warning text-dark text-wrap" style="width: 11.8rem;">{{ game_title }}</div>
           </div>
-          <div class="col-sm-6">
-            <p class="h1">野球中継実況ボード&nbsp;&nbsp;</p>
-          </div>
+        </div>
+        <div class="row">
+          <div class="offset-sm-8 col-sm-2">
+            <div>
+              <svg
+                width="50mm"
+                height="30.000002mm"
+                viewBox="0 0 50 30.000002"
+                version="1.1"
+                id="svg1"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:svg="http://www.w3.org/2000/svg">
+                <defs
+                  id="defs1">
+                  <linearGradient
+                    id="linearGradient3">
+                    <stop
+                      style="stop-color:#a8a8a8;stop-opacity:1;"
+                      offset="0"
+                      id="stop3" />
+                    <stop
+                      style="stop-color:#ebebeb;stop-opacity:1;"
+                      offset="0.82028985"
+                      id="stop4" />
+                  </linearGradient>
+                  <linearGradient
+                    xlink:href="#linearGradient3"
+                    id="linearGradient4"
+                    x1="35.611572"
+                    y1="79.637955"
+                    x2="35.732254"
+                    y2="84.760162"
+                    gradientUnits="userSpaceOnUse"
+                    spreadMethod="reflect"
+                    gradientTransform="matrix(0.89999999,0,0,0.8,0.65857019,-33.074855)" />
+                </defs>
+                <g
+                  id="layer1"
+                  transform="translate(-20.244935,-28.781959)">
+                  <rect
+                    style="fill:#35328A;fill-opacity:1;stroke-width:0.264583"
+                    id="rect2"
+                    width="50"
+                    height="30"
+                    x="20.244934"
+                    y="28.781958" />
+                  <rect
+                    style="fill:url(#linearGradient4);stroke-width:0.224506"
+                    id="rect3"
+                    width="22.5"
+                    height="8"
+                    x="21.952339"
+                    y="30.733273" />
+                  <text
+                    xml:space="preserve"
+                    style="font-size:4.23333px;fill:#333333;fill-opacity:1;stroke-width:0.264583"
+                    x="25.367146"
+                    y="36.099411"
+                    id="text4"><tspan
+                      id="tspan4"
+                      style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;stroke-width:0.264583"
+                      x="25.367146"
+                      y="36.099411">{{ inningMsg() }}</tspan></text>
+                  <text
+                    xml:space="preserve"
+                    style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
+                    x="22.440168"
+                    y="46.34383"
+                    id="text8"><tspan
+                      id="tspan8"
+                      style="font-size:4.58611px;fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
+                      x="22.440168"
+                      y="46.34383">{{ team_top }}</tspan></text>
+                  <text
+                    xml:space="preserve"
+                    style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
+                    x="22.124441"
+                    y="53.872559"
+                    id="text7-5"><tspan
+                      id="tspan7-2"
+                      style="font-size:4.58611px;fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
+                      x="22.124441"
+                      y="53.872559">{{ team_bottom }}</tspan></text>
+                  <text
+                    xml:space="preserve"
+                    style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.5861px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#c8c8c8;fill-opacity:1;stroke-width:0.264583"
+                    x="40.922894"
+                    y="46.587742"
+                    id="text9"><tspan
+                      id="tspan9"
+                      style="stroke-width:0.264583"
+                      x="40.922894"
+                      y="46.587742">: {{ (score_top<10)? "&nbsp;"+score_top:score_top }}</tspan></text>
+                  <text
+                    xml:space="preserve"
+                    style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.5861px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#c8c8c8;fill-opacity:1;stroke-width:0.264583"
+                    x="40.922894"
+                    y="53.910057"
+                    id="text9-5"><tspan
+                      id="tspan9-5"
+                      style="stroke-width:0.264583"
+                      x="40.922894"
+                      y="53.910057">: {{ (score_bottom<10)? "&nbsp;"+score_bottom:score_bottom }}</tspan></text>
+                  <path v-if="first_base"
+                    style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
+                    id="path10-3"
+                    d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
+                    transform="matrix(0.42521287,0,0,0.15945483,37.195423,23.713337)" />
+                  <path v-else
+                    style="fill:none;fill-opacity:1;stroke:#cdcd00;stroke-width:0.960103;stroke-dasharray:none;stroke-opacity:1"
+                    id="path10-3"
+                    d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
+                    transform="matrix(0.42521287,0,0,0.15945483,37.195423,23.713337)" />
+                  <path v-if="second_base"
+                    style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
+                    id="path10-2"
+                    d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
+                    transform="matrix(0.42521287,0,0,0.15945483,31.304235,21.013711)" />
+                  <path v-else
+                    style="fill:none;fill-opacity:1;stroke:#cdcd00;stroke-width:0.960103;stroke-dasharray:none;stroke-opacity:1"
+                    id="path10-2"
+                    d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
+                    transform="matrix(0.42521287,0,0,0.15945483,31.304235,21.013711)" />
+                  <path v-if="third_base"
+                    style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
+                    id="path10-8"
+                    d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
+                    transform="matrix(0.42521287,0,0,0.15945483,25.041017,23.713336)" />
+                  <path v-else
+                    style="fill:none;fill-opacity:1;stroke:#cdcd00;stroke-width:0.960103;stroke-dasharray:none;stroke-opacity:1"
+                    id="path10-8"
+                    d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
+                    transform="matrix(0.42521287,0,0,0.15945483,25.041017,23.713336)" />
+                  <text
+                    xml:space="preserve"
+                    style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
+                    x="51.422126"
+                    y="44.880337"
+                    id="text11"><tspan
+                      id="tspan11"
+                      style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
+                      x="51.422126"
+                      y="44.880337">B</tspan><tspan
+                      style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
+                      x="51.422126"
+                      y="49.731037"
+                      id="tspan12">S</tspan><tspan
+                      style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
+                      x="51.422126"
+                      y="54.581738"
+                      id="tspan13">O</tspan></text>
+                    <circle v-show="strike_cnt >= 1"
+                      style="fill:#cdcd00;fill-opacity:1;stroke-width:0.198438"
+                      id="path13-7"
+                      cx="57.413261"
+                      cy="48.554428"
+                      r="1.5" />
+                    <circle v-show="strike_cnt === 2"
+                      style="fill:#cdcd00;fill-opacity:1;stroke-width:0.198438"
+                      id="path13"
+                      cx="61.810734"
+                      cy="48.554428"
+                      r="1.5" />
 
+                  <circle v-show="ball_cnt >= 1"
+                    style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438"
+                    id="path13-7-0-5"
+                    cx="57.413261"
+                    cy="43.30896"
+                    r="1.5" />
+                  <circle v-show="ball_cnt >= 2"
+                    style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438"
+                    id="path13-7-0-5-6"
+                    cx="61.810734"
+                    cy="43.30896"
+                    r="1.5" />
+                  <circle v-show="ball_cnt === 3"
+                    style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438"
+                    id="path13-7-0-5-8"
+                    cx="66.469948"
+                    cy="43.30896"
+                    r="1.5" />
+
+                  <circle v-show="out_cnt >= 1"
+                    style="fill:#c00000;fill-opacity:1;stroke-width:0.198438"
+                    id="path13-7-0"
+                    cx="57.413261"
+                    cy="53.494202"
+                    r="1.5" />
+                  <circle v-show="out_cnt === 2"
+                    style="fill:#c00000;fill-opacity:1;stroke-width:0.198438"
+                    id="path13-7-0-4"
+                    cx="61.810734"
+                    cy="53.494202"
+                    r="1.5" />
+                  <rect v-show="isPlaying() && top"
+                    style="fill:#01aa01;fill-opacity:1;stroke-width:0.172333"
+                    id="rect14"
+                    width="1"
+                    height="7"
+                    x="21.041811"
+                    y="40.990444" />
+                  <rect v-show="isPlaying() && !top"
+                    style="fill:#01aa01;fill-opacity:1;stroke-width:0.172333"
+                    id="rect14-9"
+                    width="1"
+                    height="7"
+                    x="21.166626"
+                    y="49.477066" />
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="offset-sm-8 col-sm-2">
+            <p>Powered by <img src="img/c4s.png" class="img-thumbnail" alt="Code for SUSONO" width="102"></p>
+          </div>
         </div>
       </div>
     </section>
     <hr/>
     <section class="jumbotron">
       <div class="container">
-        <div class="mb-3 h2">タイトル・チーム名の入力</div>
-        <form>
-          <!-- Game Title -->
-          <div class="mb-3 row">
-            <label for="gameTitle" class="col-sm-2 col-form-label">タイトル</label>
-            <div class="col-sm-6">
-              <input type="text" class="form-control" v-model="game_title" id="gameTitle">
-            </div>
-          </div>
-          <!-- Team Name -->
-          <div class="mb-3 row">
-            <label for="teamTopName" class="col-sm-2 col-form-label">先攻チーム名</label>
-            <div class="col-sm-2">
-              <input type="text" class="form-control" v-model="team_top" id="teamTopName">
-            </div>
-            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
-          </div>
-          <div class="mb-3 row">
-            <label for="teamBottomName" class="col-sm-2 col-form-label">後攻チーム名</label>
-            <div class="col-sm-2">
-              <input type="text" class="form-control" v-model="team_bottom" id="teamBottomName">
-            </div>
-            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
-          </div>
-        </form>
-        <hr/>
+
         <div class="mb-3 h2">試合状況の入力</div>
         <!-- 試合状態 -->
         <form>
           <div class="mb-4 row">
-            <div class="col-sm-2 text-center">試合状態</div>
-            <div class="col-sm-8">
+            <div class="col-sm-2 text-center fs-5">試合状態</div>
+            <div class="col-sm-9">
               <div class="row">
                 <div v-for="(item,index) in game_array" class="col-sm">
                   <input type="radio" :id="'item'+index" v-model="game_inning" :value=index />
@@ -68,11 +259,14 @@
                 </div>
               </div>
             </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-info btn-sm" v-on:click="gameInit">初期化</button>
+            </div>
           </div>
           <div class="mb-2 row">
-            <div class="col-sm-2 text-center">攻撃チーム</div>
+            <div class="col-sm-2 text-center fs-5">攻撃チーム</div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="gameBackward">&lt;</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="gameBackward">&lt;</button>
             </div>
             <div class="col-sm-4">
               <div class="row">
@@ -84,17 +278,24 @@
                   <input type="radio" id="deffense" v-model="top" :value="false"/>
                   <label for="deffense">後攻</label>
                 </div>
-                <div class="col-sm text-info text-decoration-underline">{{ top ? "オモテ":"ウラ" }}</div>
+                <div class="col-sm algin-bottom fs-5">{{ top ? "オモテ":"ウラ" }}</div>
               </div>
             </div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="gameForward">&gt;</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="gameForward">&gt;</button>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-info btn-sm" v-on:click="gameStart">試合開始</button>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-info btn-sm" v-on:click="gameEnd">試合終了</button>
             </div>
           </div>
+          <hr>
           <!-- 出塁 -->
           <div class="mb-4 row">
-            <div class="col-sm-2 text-center">出塁</div>
-            <div class="offset-sm-1 col-sm-4">
+            <div class="col-sm-2 text-center fs-5">出塁</div>
+            <div class="col-sm-4">
               <div class="row">
                 <div class="col-sm">
                   <input type="checkbox" v-model="first_base" id="firstBase" />
@@ -110,13 +311,14 @@
                 </div>
               </div>
             </div>
+            <div class="offset-sm-2 col-sm-1 text-info text-center fs-5">打者</div>
           </div>
-
+          <hr>
           <!-- ballカウント -->
           <div class="mb-3 row">
-            <div class="col-sm-2 text-center">ボール数</div>
+            <div class="col-sm-2 text-center fs-5">ボール数</div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="ballCountDown">&lt;</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="ballCountDown">&lt;</button>
             </div>
             <div class="col-sm-1">
               <input type="radio" id="b_zero" v-model="ball_cnt" :value="0" />
@@ -135,15 +337,18 @@
               <label for="b_three">3</label>
             </div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="ballCountUp">&gt;</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="ballCountUp">&gt;</button>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-info btn-sm" v-on:click="batterHit">Hit/BallFour</button>
             </div>
           </div>
-
+          <hr>
           <!-- strikeカウント -->
           <div class="mb-3 row">
-            <div class="col-sm-2 text-center">ストライク数</div>
+            <div class="col-sm-2 text-center fs-5">ストライク数</div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="strikeCountDown">&lt;</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="strikeCountDown">&lt;</button>
             </div>
             <div class="col-sm-4">
               <div class="row">
@@ -162,17 +367,18 @@
               </div>
             </div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="strikeCountUp">&gt;</button>
-            </div>
-          </div>
-
-          <!-- outカウント -->
-          <div class="mb-3 row">
-            <div class="col-sm-2 text-center">
-              アウト数
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="strikeCountUp">&gt;</button>
             </div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="outCountDown">&lt;</button>
+              <button type="button" class="btn btn-info btn-sm" v-on:click="batterOut">StrikeOut</button>
+            </div>
+          </div>
+          <hr>
+          <!-- outカウント -->
+          <div class="mb-3 row">
+            <div class="col-sm-2 text-center fs-5">アウト数</div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="outCountDown">&lt;</button>
             </div>
             <div class="col-sm-4">
               <div class="row">
@@ -190,274 +396,88 @@
                 </div>
               </div>
             </div>
-            
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="outCountUp">&gt;</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="outCountUp">&gt;</button>
             </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-info btn-sm" v-on:click="batterOut">Out</button>
+            </div>
+            
           </div>
-          
+          <hr>
           <!-- Top Team Points -->
           <div class="mb-3 row">
-            <div class="col-sm-2 text-center">先攻チーム得点</div>
+            <div class="col-sm-2 text-center fs-5">先攻チーム得点</div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="decrementScoreTop">-1</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="decrementScoreTop">-1</button>
             </div>
             <div class="col-sm-4">
               <div class="row">
-                <div class="col-sm text-center text-info text-decoration-underline">{{ team_top }}</div>
-                <div class="col-sm text-center text-info text-decoration-underline">{{ score_top }}</div>
+                <div class="col-sm text-center fs-5">{{ team_top }}</div>
+                <div class="col-sm text-center fs-5">{{ score_top }}</div>
               </div>
             </div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="incrementScoreTop">+1</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="incrementScoreTop">+1</button>
             </div>
           </div>
 
           <!-- Bottom Team Points -->
           <div class="mb-3 row">
-            <div class="col-sm-2 text-center">後攻チーム得点</div>
+            <div class="col-sm-2 text-center fs-5">後攻チーム得点</div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="decrementScoreBottom">-1</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="decrementScoreBottom">-1</button>
             </div>
             <div class="col-sm-4">
               <div class="row">
-                <div class="col-sm text-center text-info text-decoration-underline">{{ team_bottom }}</div>
-                <div class="col-sm text-center text-info text-decoration-underline">{{ score_bottom }}</div>
+                <div class="col-sm text-center fs-5">{{ team_bottom }}</div>
+                <div class="col-sm text-center fs-5">{{ score_bottom }}</div>
               </div>
             </div>
             <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="incrementScoreBottom">+1</button>
+              <button type="button" class="btn btn-warning btn-sm" v-on:click="incrementScoreBottom">+1</button>
             </div>
           </div>
-          
+          <hr>
         </form>
-        <hr/>
-        <div class="mb-3 h2">試合状況の表示</div>
-        <br/>
-        <br/>
-        <div class="row">
-          <div class="col-sm-2 align-self-end">
-            <div class="align-top badge bg-warning text-dark text-wrap" style="width: 11.8rem;">{{ game_title }}</div>
-            <img src="img/c4s.png" alt="Code for SUSONO" width="100">
-          </div>
-          <div class="offset-sm-8 col-sm">
-            <svg
-              width="50mm"
-              height="30.000002mm"
-              viewBox="0 0 50 30.000002"
-              version="1.1"
-              id="svg1"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:svg="http://www.w3.org/2000/svg">
-              <defs
-                id="defs1">
-                <linearGradient
-                  id="linearGradient3">
-                  <stop
-                    style="stop-color:#a8a8a8;stop-opacity:1;"
-                    offset="0"
-                    id="stop3" />
-                  <stop
-                    style="stop-color:#ebebeb;stop-opacity:1;"
-                    offset="0.82028985"
-                    id="stop4" />
-                </linearGradient>
-                <linearGradient
-                  xlink:href="#linearGradient3"
-                  id="linearGradient4"
-                  x1="35.611572"
-                  y1="79.637955"
-                  x2="35.732254"
-                  y2="84.760162"
-                  gradientUnits="userSpaceOnUse"
-                  spreadMethod="reflect"
-                  gradientTransform="matrix(0.89999999,0,0,0.8,0.65857019,-33.074855)" />
-              </defs>
-              <g
-                id="layer1"
-                transform="translate(-20.244935,-28.781959)">
-                <rect
-                  style="fill:#35328A;fill-opacity:1;stroke-width:0.264583"
-                  id="rect2"
-                  width="50"
-                  height="30"
-                  x="20.244934"
-                  y="28.781958" />
-                <rect
-                  style="fill:url(#linearGradient4);stroke-width:0.224506"
-                  id="rect3"
-                  width="22.5"
-                  height="8"
-                  x="21.952339"
-                  y="30.733273" />
-                <text
-                  xml:space="preserve"
-                  style="font-size:4.23333px;fill:#333333;fill-opacity:1;stroke-width:0.264583"
-                  x="25.367146"
-                  y="36.099411"
-                  id="text4"><tspan
-                    id="tspan4"
-                    style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;stroke-width:0.264583"
-                    x="25.367146"
-                    y="36.099411">{{ inningMsg() }}</tspan></text>
-                <text
-                  xml:space="preserve"
-                  style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
-                  x="22.440168"
-                  y="46.34383"
-                  id="text8"><tspan
-                    id="tspan8"
-                    style="font-size:4.58611px;fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
-                    x="22.440168"
-                    y="46.34383">{{ team_top }}</tspan></text>
-                <text
-                  xml:space="preserve"
-                  style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
-                  x="22.124441"
-                  y="53.872559"
-                  id="text7-5"><tspan
-                    id="tspan7-2"
-                    style="font-size:4.58611px;fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
-                    x="22.124441"
-                    y="53.872559">{{ team_bottom }}</tspan></text>
-                <text
-                  xml:space="preserve"
-                  style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.5861px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#c8c8c8;fill-opacity:1;stroke-width:0.264583"
-                  x="40.922894"
-                  y="46.587742"
-                  id="text9"><tspan
-                    id="tspan9"
-                    style="stroke-width:0.264583"
-                    x="40.922894"
-                    y="46.587742">: {{ (score_top<10)? "&nbsp;"+score_top:score_top }}</tspan></text>
-                <text
-                  xml:space="preserve"
-                  style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.5861px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#c8c8c8;fill-opacity:1;stroke-width:0.264583"
-                  x="40.922894"
-                  y="53.910057"
-                  id="text9-5"><tspan
-                    id="tspan9-5"
-                    style="stroke-width:0.264583"
-                    x="40.922894"
-                    y="53.910057">: {{ (score_bottom<10)? "&nbsp;"+score_bottom:score_bottom }}</tspan></text>
-                <path v-if="first_base"
-                  style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
-                  id="path10-3"
-                  d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
-                  transform="matrix(0.42521287,0,0,0.15945483,37.195423,23.713337)" />
-                <path v-else
-                  style="fill:none;fill-opacity:1;stroke:#cdcd00;stroke-width:0.960103;stroke-dasharray:none;stroke-opacity:1"
-                  id="path10-3"
-                  d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
-                  transform="matrix(0.42521287,0,0,0.15945483,37.195423,23.713337)" />
-                <path v-if="second_base"
-                  style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
-                  id="path10-2"
-                  d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
-                  transform="matrix(0.42521287,0,0,0.15945483,31.304235,21.013711)" />
-                <path v-else
-                  style="fill:none;fill-opacity:1;stroke:#cdcd00;stroke-width:0.960103;stroke-dasharray:none;stroke-opacity:1"
-                  id="path10-2"
-                  d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
-                  transform="matrix(0.42521287,0,0,0.15945483,31.304235,21.013711)" />
-                <path v-if="third_base"
-                  style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
-                  id="path10-8"
-                  d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
-                  transform="matrix(0.42521287,0,0,0.15945483,25.041017,23.713336)" />
-                <path v-else
-                  style="fill:none;fill-opacity:1;stroke:#cdcd00;stroke-width:0.960103;stroke-dasharray:none;stroke-opacity:1"
-                  id="path10-8"
-                  d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
-                  transform="matrix(0.42521287,0,0,0.15945483,25.041017,23.713336)" />
-                <text
-                  xml:space="preserve"
-                  style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
-                  x="51.422126"
-                  y="44.880337"
-                  id="text11"><tspan
-                    id="tspan11"
-                    style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
-                    x="51.422126"
-                    y="44.880337">B</tspan><tspan
-                    style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
-                    x="51.422126"
-                    y="49.731037"
-                    id="tspan12">S</tspan><tspan
-                    style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
-                    x="51.422126"
-                    y="54.581738"
-                    id="tspan13">O</tspan></text>
-                  <circle v-show="strike_cnt >= 1"
-                    style="fill:#cdcd00;fill-opacity:1;stroke-width:0.198438"
-                    id="path13-7"
-                    cx="57.413261"
-                    cy="48.554428"
-                    r="1.5" />
-                  <circle v-show="strike_cnt === 2"
-                    style="fill:#cdcd00;fill-opacity:1;stroke-width:0.198438"
-                    id="path13"
-                    cx="61.810734"
-                    cy="48.554428"
-                    r="1.5" />
 
-                <circle v-show="ball_cnt >= 1"
-                  style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438"
-                  id="path13-7-0-5"
-                  cx="57.413261"
-                  cy="43.30896"
-                  r="1.5" />
-                <circle v-show="ball_cnt >= 2"
-                  style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438"
-                  id="path13-7-0-5-6"
-                  cx="61.810734"
-                  cy="43.30896"
-                  r="1.5" />
-                <circle v-show="ball_cnt === 3"
-                  style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438"
-                  id="path13-7-0-5-8"
-                  cx="66.469948"
-                  cy="43.30896"
-                  r="1.5" />
-
-                <circle v-show="out_cnt >= 1"
-                  style="fill:#9e0000;fill-opacity:1;stroke-width:0.198438"
-                  id="path13-7-0"
-                  cx="57.413261"
-                  cy="53.494202"
-                  r="1.5" />
-                <circle v-show="out_cnt === 2"
-                  style="fill:#9e0000;fill-opacity:1;stroke-width:0.198438"
-                  id="path13-7-0-4"
-                  cx="61.810734"
-                  cy="53.494202"
-                  r="1.5" />
-                <rect v-show="isPlaying() && top"
-                  style="fill:#01aa01;fill-opacity:1;stroke-width:0.172333"
-                  id="rect14"
-                  width="1"
-                  height="7"
-                  x="21.041811"
-                  y="40.990444" />
-                <rect v-show="isPlaying() && !top"
-                  style="fill:#01aa01;fill-opacity:1;stroke-width:0.172333"
-                  id="rect14-9"
-                  width="1"
-                  height="7"
-                  x="21.166626"
-                  y="49.477066" />
-              </g>
-            </svg>
+        <div class="mb-3 h2">タイトル・チーム名の入力</div>
+        <form>
+          <!-- Game Title -->
+          <div class="mb-3 row">
+            <label for="gameTitle" class="col-sm-2 col-form-label">タイトル</label>
+            <div class="col-sm-6">
+              <select class="form-control" v-model="game_title" id="gameTitle">
+                <option v-for="title in title_items" :value="title">{{ title }}</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <br />
-        <br />
+          <!-- Team Name -->
+          <div class="mb-3 row">
+            <label for="teamTopName" class="col-sm-2 col-form-label">先攻チーム名</label>
+            <div class="col-sm-2">
+              <select class="form-control" v-model="team_top" id="teamTopName">
+                <option v-for="team in team_items" :value="team">{{ team }}</option>
+              </select>
+            </div>
+            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
+          </div>
+          <div class="mb-3 row">
+            <label for="teamBottomName" class="col-sm-2 col-form-label">後攻チーム名</label>
+            <div class="col-sm-2">
+              <select class="form-control" v-model="team_bottom" id="teamBottomName">
+                <option v-for="team in team_items" :value="team">{{ team }}</option>
+              </select>
+            </div>
+            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
+          </div>
+        </form>
+
       </div>
       <hr />
     </section>
     <footer>
-      <div class="text-center">2024 Code for SUSONO</div>
+      <div class="text-center">2024 Code for SUSONO <img src="img/c4s.png" alt="Code for SUSONO" width="100"></div>
     </footer>
   </div>
 

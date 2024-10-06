@@ -119,6 +119,8 @@ const app = Vue.createApp({
     gameInit: function() {
       this.game_inning = 0
       this.top = false
+      this.score_top = 0
+      this.score_bottom = 0
       this.initParams()
     },
     gameStart: function() {

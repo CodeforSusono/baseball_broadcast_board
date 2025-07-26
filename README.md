@@ -34,22 +34,43 @@ YouTube 等で野球の試合を配信する際、チームの得点状況・ラ
 1.  **依存関係のインストール**: プロジェクトのルートディレクトリでターミナルを開き、次のコマンドを実行して必要な WebSocket ライブラリをインストールします。
 
     ```bash
-    npm install
+    $ npm install
+
+    added 1 package, and audited 2 packages in 1s
+
+    found 0 vulnerabilities
     ```
 
 2.  **サーバーの起動**: 次のコマンドを実行して、Web サーバーと WebSocket サーバーを起動します。
 
     ```bash
-    node server.js
+    $ node server.js
+    Server is listening on port 8080
+
     ```
 
     コンソールに、HTTP および WebSocket サーバーがポート 8080 で実行されていることを示すメッセージが表示されます。
 
 3.  **アプリケーションの使用**:
+
     - **操作パネル**: Web ブラウザを開き、`http://localhost:8080/index.html`にアクセスし、試合状況を入力する
       　　![操作パネル](doc/panel.png)
     - **表示ボード**: 別のブラウザタブまたはウィンドウを開き、`http://localhost:8080/board.html`にアクセスします。この URL を配信ソフトウェアのブラウザソースとして使用できます。
       　　![表示ボード](doc/board.png)
+
+4.  **サーバーの起動終了**: サーバーを起動したコマンドライン上で、`Ctrl+C + C`で終了する
+
+    ```bash
+    $ node server.js
+    Server is listening on port 8080
+    Client connected
+    Client connected
+    Received: {"game_title":"第21回 DREAM-CUP 第1試合","team_top":"Team A","team_bottom":"Team B","game_inning":0,"top":false,"first_base":false,"second_base":false,"third_base":false,"ball_cnt":0,"strike_cnt":0,"out_cnt":0,"score_top":0,"score_bottom":0,"last_inning":9}
+    <省略>
+    Received: {"game_title":"第21回 DREAM-CUP 第1試合","team_top":"東京B","team_bottom":"横浜","game_inning":5,"top":true,"first_base":false,"second_base":false,"third_base":false,"ball_cnt":0,"strike_cnt":0,"out_cnt":0,"score_top":1,"score_bottom":1,"last_inning":9}
+    ^C
+    $
+    ```
 
 ### 利用している OSS
 

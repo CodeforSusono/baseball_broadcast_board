@@ -16,230 +16,6 @@
     <section class="jumbotron">
       <div class="container">
         <div class="row">
-          <div class="col-sm-2 align-self-center">
-            <img src="img/c4s.png" alt="Code for SUSONO" width="100">
-          </div>
-          <div class="col-sm-6">
-            <p class="h1">野球中継実況ボード&nbsp;&nbsp;</p>
-          </div>
-
-        </div>
-      </div>
-    </section>
-    <hr/>
-    <section class="jumbotron">
-      <div class="container">
-        <div class="mb-3 h2">タイトル・チーム名の入力</div>
-        <form>
-          <!-- Game Title -->
-          <div class="mb-3 row">
-            <label for="gameTitle" class="col-sm-2 col-form-label">タイトル</label>
-            <div class="col-sm-6">
-              <input type="text" class="form-control" v-model="game_title" id="gameTitle">
-            </div>
-          </div>
-          <!-- Team Name -->
-          <div class="mb-3 row">
-            <label for="teamTopName" class="col-sm-2 col-form-label">先攻チーム名</label>
-            <div class="col-sm-2">
-              <input type="text" class="form-control" v-model="team_top" id="teamTopName">
-            </div>
-            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
-          </div>
-          <div class="mb-3 row">
-            <label for="teamBottomName" class="col-sm-2 col-form-label">後攻チーム名</label>
-            <div class="col-sm-2">
-              <input type="text" class="form-control" v-model="team_bottom" id="teamBottomName">
-            </div>
-            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
-          </div>
-        </form>
-        <hr/>
-        <div class="mb-3 h2">試合状況の入力</div>
-        <!-- 試合状態 -->
-        <form>
-          <div class="mb-4 row">
-            <div class="col-sm-2 text-center">試合状態</div>
-            <div class="col-sm-8">
-              <div class="row">
-                <div v-for="(item,index) in game_array" class="col-sm">
-                  <input type="radio" :id="'item'+index" v-model="game_inning" :value=index />
-                  <label :for="'item'+index">{{ item }}</label>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="mb-2 row">
-            <div class="col-sm-2 text-center">攻撃チーム</div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="gameBackward">&lt;</button>
-            </div>
-            <div class="col-sm-4">
-              <div class="row">
-                <div class="col-sm">
-                  <input type="radio" id="offense" v-model="top" :value="true"/>
-                  <label for="offense">先攻</label>
-                </div>
-                <div class="col-sm">
-                  <input type="radio" id="deffense" v-model="top" :value="false"/>
-                  <label for="deffense">後攻</label>
-                </div>
-                <div class="col-sm text-info text-decoration-underline">{{ top ? "オモテ":"ウラ" }}</div>
-              </div>
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="gameForward">&gt;</button>
-            </div>
-          </div>
-          <!-- 出塁 -->
-          <div class="mb-4 row">
-            <div class="col-sm-2 text-center">出塁</div>
-            <div class="offset-sm-1 col-sm-4">
-              <div class="row">
-                <div class="col-sm">
-                  <input type="checkbox" v-model="first_base" id="firstBase" />
-                  <label for="firstBase">1塁</label>
-                </div>
-                <div class="col-sm">
-                  <input type="checkbox" v-model="second_base" id="secondBase" />
-                  <label for="secondBase">2塁</label>
-                </div>
-                <div class="col-sm">
-                  <input type="checkbox" v-model="third_base" id="thirdBase" />
-                  <label for="thirdBase">3塁</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ballカウント -->
-          <div class="mb-3 row">
-            <div class="col-sm-2 text-center">ボール数</div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="ballCountDown">&lt;</button>
-            </div>
-            <div class="col-sm-1">
-              <input type="radio" id="b_zero" v-model="ball_cnt" :value="0" />
-              <label for="b_zero">0</label>
-            </div>
-            <div class="col-sm-1">
-              <input type="radio" id="b_one" v-model="ball_cnt" :value="1" />
-              <label for="b_one">1</label>
-            </div>
-            <div class="col-sm-1">
-              <input type="radio" id="b_two" v-model="ball_cnt" :value="2"  />
-              <label for="b_two">2</label>
-            </div>
-            <div class="col-sm-1">
-              <input type="radio" id="b_three" :value="3" v-model="ball_cnt" />
-              <label for="b_three">3</label>
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="ballCountUp">&gt;</button>
-            </div>
-          </div>
-
-          <!-- strikeカウント -->
-          <div class="mb-3 row">
-            <div class="col-sm-2 text-center">ストライク数</div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="strikeCountDown">&lt;</button>
-            </div>
-            <div class="col-sm-4">
-              <div class="row">
-                <div class="col-sm">
-                  <input type="radio" id="s_zero" v-model="strike_cnt" :value="0" />
-                  <label for="s_zero">0</label>
-                </div>
-                <div class="col-sm">
-                  <input type="radio" id="s_one" v-model="strike_cnt" :value="1" />
-                  <label for="s_one">1</label>
-                </div>
-                <div class="col-sm">
-                  <input type="radio" id="s_two" v-model="strike_cnt" :value="2"  />
-                  <label for="s_two">2</label>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="strikeCountUp">&gt;</button>
-            </div>
-          </div>
-
-          <!-- outカウント -->
-          <div class="mb-3 row">
-            <div class="col-sm-2 text-center">
-              アウト数
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="outCountDown">&lt;</button>
-            </div>
-            <div class="col-sm-4">
-              <div class="row">
-                <div class="col-sm">
-                  <input type="radio" id="o_zero" v-model="out_cnt" :value="0" />
-                  <label for="o_zero">0</label>
-                </div>
-                <div class="col-sm">
-                  <input type="radio" id="o_one" v-model="out_cnt" :value="1" />
-                  <label for="o_one">1</label>
-                </div>
-                <div class="col-sm">
-                  <input type="radio" id="o_two" v-model="out_cnt" :value="2"  />
-                  <label for="o_two">2</label>
-                </div>
-              </div>
-            </div>
-            
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="outCountUp">&gt;</button>
-            </div>
-          </div>
-          
-          <!-- Top Team Points -->
-          <div class="mb-3 row">
-            <div class="col-sm-2 text-center">先攻チーム得点</div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="decrementScoreTop">-1</button>
-            </div>
-            <div class="col-sm-4">
-              <div class="row">
-                <div class="col-sm text-center text-info text-decoration-underline">{{ team_top }}</div>
-                <div class="col-sm text-center text-info text-decoration-underline">{{ score_top }}</div>
-              </div>
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="incrementScoreTop">+1</button>
-            </div>
-          </div>
-
-          <!-- Bottom Team Points -->
-          <div class="mb-3 row">
-            <div class="col-sm-2 text-center">後攻チーム得点</div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="decrementScoreBottom">-1</button>
-            </div>
-            <div class="col-sm-4">
-              <div class="row">
-                <div class="col-sm text-center text-info text-decoration-underline">{{ team_bottom }}</div>
-                <div class="col-sm text-center text-info text-decoration-underline">{{ score_bottom }}</div>
-              </div>
-            </div>
-            <div class="col-sm-1">
-              <button type="button" class="btn btn-outline-warning" v-on:click="incrementScoreBottom">+1</button>
-            </div>
-          </div>
-          
-        </form>
-        <hr/>
-        <div class="mb-3 h2">試合状況の表示</div>
-        <br/>
-        <br/>
-        <div class="row">
-          <div class="col-sm-2 align-self-end">
-            <div class="align-top badge bg-warning text-dark text-wrap" style="width: 11.8rem;">{{ game_title }}</div>
-            <img src="img/c4s.png" alt="Code for SUSONO" width="100">
-          </div>
           <div class="offset-sm-8 col-sm">
             <svg
               width="50mm"
@@ -450,9 +226,221 @@
               </g>
             </svg>
           </div>
+          <div class="offset-sm-8 col-sm">
+            <div class="align-top badge bg-warning text-dark text-wrap" style="width: 11.8rem;">{{ game_title }}</div>
+            <div class="power">Powered by　<img src="img/c4s.png" alt="Code for SUSONO" width="100"></div>
+          </div>
         </div>
         <br />
         <br />
+        <div class="mb-3 h2">タイトル・チーム名の入力</div>
+        <form>
+          <!-- Game Title -->
+          <div class="mb-3 row">
+            <label for="gameTitle" class="col-sm-2 col-form-label">タイトル</label>
+            <div class="col-sm-6">
+              <input type="text" class="form-control" v-model="game_title" id="gameTitle">
+            </div>
+          </div>
+          <!-- Team Name -->
+          <div class="mb-3 row">
+            <label for="teamTopName" class="col-sm-2 col-form-label">先攻チーム名</label>
+            <div class="col-sm-2">
+	      <select class="form-control" v-model="team_top" id="teamTopName">
+	        <option v-for="team in team_items" :value="team">{{ team }}</option>
+    	      </select>
+            </div>
+            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
+          </div>
+          <div class="mb-3 row">
+            <label for="teamBottomName" class="col-sm-2 col-form-label">後攻チーム名</label>
+            <div class="col-sm-2">
+              <select class="form-control" v-model="team_bottom" id="teamBottomName">
+                <option v-for="team in team_items" :value="team">{{ team }}</option>
+              </select>
+            </div>
+            <div class="col-sm-4">(半角5文字、全角4文字以内)</div>
+          </div>
+        </form>
+        <hr/>
+        <div class="mb-3 h2">試合状況の入力</div>
+        <!-- 試合状態 -->
+        <form>
+          <div class="mb-4 row">
+            <div class="col-sm-2 text-center">試合状態</div>
+            <div class="col-sm-8">
+              <div class="row">
+                <div v-for="(item,index) in game_array" class="col-sm">
+                  <input type="radio" :id="'item'+index" v-model="game_inning" :value=index />
+                  <label :for="'item'+index">{{ item }}</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mb-2 row">
+            <div class="col-sm-2 text-center">攻撃チーム</div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="gameBackward">&lt;</button>
+            </div>
+            <div class="col-sm-4">
+              <div class="row">
+                <div class="col-sm">
+                  <input type="radio" id="offense" v-model="top" :value="true"/>
+                  <label for="offense">先攻</label>
+                </div>
+                <div class="col-sm">
+                  <input type="radio" id="deffense" v-model="top" :value="false"/>
+                  <label for="deffense">後攻</label>
+                </div>
+                <div class="col-sm text-info text-decoration-underline">{{ top ? "オモテ":"ウラ" }}</div>
+              </div>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="gameForward">&gt;</button>
+            </div>
+          </div>
+          <!-- 出塁 -->
+          <div class="mb-4 row">
+            <div class="col-sm-2 text-center">出塁</div>
+            <div class="offset-sm-1 col-sm-4">
+              <div class="row">
+                <div class="col-sm">
+                  <input type="checkbox" v-model="first_base" id="firstBase" />
+                  <label for="firstBase">1塁</label>
+                </div>
+                <div class="col-sm">
+                  <input type="checkbox" v-model="second_base" id="secondBase" />
+                  <label for="secondBase">2塁</label>
+                </div>
+                <div class="col-sm">
+                  <input type="checkbox" v-model="third_base" id="thirdBase" />
+                  <label for="thirdBase">3塁</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ballカウント -->
+          <div class="mb-3 row">
+            <div class="col-sm-2 text-center">ボール数</div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="ballCountDown">&lt;</button>
+            </div>
+            <div class="col-sm-1">
+              <input type="radio" id="b_zero" v-model="ball_cnt" :value="0" />
+              <label for="b_zero">0</label>
+            </div>
+            <div class="col-sm-1">
+              <input type="radio" id="b_one" v-model="ball_cnt" :value="1" />
+              <label for="b_one">1</label>
+            </div>
+            <div class="col-sm-1">
+              <input type="radio" id="b_two" v-model="ball_cnt" :value="2"  />
+              <label for="b_two">2</label>
+            </div>
+            <div class="col-sm-1">
+              <input type="radio" id="b_three" :value="3" v-model="ball_cnt" />
+              <label for="b_three">3</label>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="ballCountUp">&gt;</button>
+            </div>
+          </div>
+
+          <!-- strikeカウント -->
+          <div class="mb-3 row">
+            <div class="col-sm-2 text-center">ストライク数</div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="strikeCountDown">&lt;</button>
+            </div>
+            <div class="col-sm-4">
+              <div class="row">
+                <div class="col-sm">
+                  <input type="radio" id="s_zero" v-model="strike_cnt" :value="0" />
+                  <label for="s_zero">0</label>
+                </div>
+                <div class="col-sm">
+                  <input type="radio" id="s_one" v-model="strike_cnt" :value="1" />
+                  <label for="s_one">1</label>
+                </div>
+                <div class="col-sm">
+                  <input type="radio" id="s_two" v-model="strike_cnt" :value="2"  />
+                  <label for="s_two">2</label>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="strikeCountUp">&gt;</button>
+            </div>
+          </div>
+
+          <!-- outカウント -->
+          <div class="mb-3 row">
+            <div class="col-sm-2 text-center">
+              アウト数
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="outCountDown">&lt;</button>
+            </div>
+            <div class="col-sm-4">
+              <div class="row">
+                <div class="col-sm">
+                  <input type="radio" id="o_zero" v-model="out_cnt" :value="0" />
+                  <label for="o_zero">0</label>
+                </div>
+                <div class="col-sm">
+                  <input type="radio" id="o_one" v-model="out_cnt" :value="1" />
+                  <label for="o_one">1</label>
+                </div>
+                <div class="col-sm">
+                  <input type="radio" id="o_two" v-model="out_cnt" :value="2"  />
+                  <label for="o_two">2</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="outCountUp">&gt;</button>
+            </div>
+          </div>
+          
+          <!-- Top Team Points -->
+          <div class="mb-3 row">
+            <div class="col-sm-2 text-center">先攻チーム得点</div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="decrementScoreTop">-1</button>
+            </div>
+            <div class="col-sm-4">
+              <div class="row">
+                <div class="col-sm text-center text-info text-decoration-underline">{{ team_top }}</div>
+                <div class="col-sm text-center text-info text-decoration-underline">{{ score_top }}</div>
+              </div>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="incrementScoreTop">+1</button>
+            </div>
+          </div>
+
+          <!-- Bottom Team Points -->
+          <div class="mb-3 row">
+            <div class="col-sm-2 text-center">後攻チーム得点</div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="decrementScoreBottom">-1</button>
+            </div>
+            <div class="col-sm-4">
+              <div class="row">
+                <div class="col-sm text-center text-info text-decoration-underline">{{ team_bottom }}</div>
+                <div class="col-sm text-center text-info text-decoration-underline">{{ score_bottom }}</div>
+              </div>
+            </div>
+            <div class="col-sm-1">
+              <button type="button" class="btn btn-outline-warning" v-on:click="incrementScoreBottom">+1</button>
+            </div>
+          </div>
+          
+        </form>
+        <hr/>
+        
       </div>
       <hr />
     </section>

@@ -1,11 +1,11 @@
 const app = Vue.createApp({
   data: () => ({
     message: 'Hello Score Board !',
-    game_title: "第21回 DREAM-CUP 第1試合",
+    game_title: "第21回 DREAM-CUP 第2試合",
     team_top: "Team A",
     team_bottom: "Team B",
     game_inning: 0,
-    last_inning: 5,
+    last_inning: 9,
     top: false,
     first_base: false,
     second_base: false,
@@ -16,7 +16,8 @@ const app = Vue.createApp({
     score_top: 0,
     score_bottom: 0,
     game_start: false,
-    game_array: ["試合前",1,2,3,4,5,"試合終了"]
+    game_array: ["試合前",1,2,3,4,5,6,7,8,9,"試合終了"],
+    team_items: ["　","東京B","横浜","東京G","龍野"]
   }),
   methods: {
     initParams: function() {

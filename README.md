@@ -85,8 +85,9 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 3.  **アプリケーションの使用**:
 
     - **トップページ**: `http://localhost:8080/` または `http://localhost:8080/index.html` にアクセスします。
+      ![トップページ](doc/index.png)
     - **操作パネル**: `http://localhost:8080/operation.html` にアクセスします。
-      ![操作パネル](doc/panel.png)
+      ![操作パネル](doc/operation.png)
     - **表示ボード**: `http://localhost:8080/board.html` にアクセスします。この URL を OBS 等のブラウザソースに設定してください。
 
 4.  **サーバーの停止**:

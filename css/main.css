@@ -2,10 +2,10 @@
   background-color: #eeb50a;
 }
 div.power {
-  color: #ffffff;
+  color: #333; /* 背景が白になるため、文字色を濃いグレーに変更 */
 }
 
 body {
-  color: #ffffff;
-  background-color: green; /* クロマキー合成用の背景色 */
+  color: #333; /* 見やすい文字色に変更 */
+  background-color: #fff; /* 白背景に変更 */
 }

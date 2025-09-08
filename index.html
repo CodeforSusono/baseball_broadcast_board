@@ -1,35 +1,83 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Baseball Scoreboard powered by Code for SUSONO</title>
-    <link rel="icon" href="img/c4s_icon.png" />
-    <link rel="stylesheet" href="css/bootstrap.min.css" />
-    <link rel="stylesheet" href="css/main.css" />
-  </head>
-  <body>
-    <section class="jumbotron">
-      <div class="container">
-        <h1>野球スコアボード</h1>
-        <p>
-          このアプリケーションは、野球の試合状況をリアルタイムで表示するためのものです。
-        </p>
-        <ul>
-          <li>
-            <a href="/operation.html">操作パネル</a> - 試合の状況を更新します。
-          </li>
-          <li>
-            <a href="/board.html">表示ボード</a> - 試合の状況を表示します。
-          </li>
-        </ul>
-        <footer>
-          <div class="power">
-            2024- Code for SUSONO
-            <img src="img/c4s.png" alt="Code for SUSONO" width="100" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>野球スコアボード - メニュー</title>
+  <link rel="icon" href="img/c4s_icon.png" />
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      background-color: #f8f9fa; /* ページ全体に薄いグレーの背景色を設定 */
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      width: 18rem;
+      border-width: 2px; /* 枠線を太くする */
+    }
+    .footer {
+      padding: 1rem 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ナビゲーションバー -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">野球スコアボード</span>
+    </div>
+  </nav>
+
+  <!-- メインコンテンツ -->
+  <div class="main-content">
+    <div class="container">
+      <div class="row justify-content-center g-4">
+        <!-- 操作パネルカード -->
+        <div class="col-auto">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">操作パネル</h5>
+              <p class="card-text">試合のスコア、イニング、ランナー状況などをリアルタイムで更新します。</p>
+              <a href="/operation.html" class="btn btn-primary">操作パネルを開く</a>
+            </div>
           </div>
-        </footer>
+        </div>
+        <!-- 表示ボードカード -->
+        <div class="col-auto">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">表示ボード</h5>
+              <p class="card-text">OBS等の配信ソフトで取り込むためのスコアボード画面です。</p>
+              <a href="/board.html" class="btn btn-secondary">表示ボードを開く</a>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
-  </body>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <footer class="footer mt-auto py-3 bg-light">
+    <div class="container text-center">
+       <span class="text-muted">
+         2024 - Code for SUSONO
+         <img src="img/c4s.png" alt="Code for SUSONO" style="height: 24px; vertical-align: middle; margin-left: 8px;">
+       </span>
+    </div>
+  </footer>
+
+</body>
 </html>

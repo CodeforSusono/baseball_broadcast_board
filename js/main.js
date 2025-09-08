@@ -89,6 +89,11 @@ const app = Vue.createApp({
       this.strike_cnt = 0;
       this.out_cnt = 0;
     },
+    resetBSO: function () {
+      this.ball_cnt = 0;
+      this.strike_cnt = 0;
+      this.out_cnt = 0;
+    },
     inningMsg: function () {
       if (this.game_inning < 1) {
         return "試合前";

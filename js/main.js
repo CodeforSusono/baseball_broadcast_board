@@ -1,9 +1,9 @@
 const app = Vue.createApp({
   data: () => ({
     message: "Hello Score Board !",
-    game_title: "第21回 DREAM-CUP 第1試合",
-    team_top: "Team A",
-    team_bottom: "Team B",
+    game_title: "",
+    team_top: "",
+    team_bottom: "",
     game_inning: 0,
     last_inning: 9,
     top: false,
@@ -28,6 +28,18 @@ const app = Vue.createApp({
       // 接続時に現在のデータを送信
       this.updateBoard();
     };
+
+    this.socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    fetch("/init_data.json")
+      .then((response) => response.json())
+      .then((data) => {
+        this.game_title = data.game_title;
+        this.team_top = data.team_top;
+        this.team_bottom = data.team_bottom;
+      });
 
     this.socket.onerror = (error) => {
       console.error("WebSocket error:", error);

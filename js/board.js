@@ -1,9 +1,9 @@
 const board = Vue.createApp({
   data: () => ({
     boardData: {
-      game_title: "試合情報",
-      team_top: "Team A",
-      team_bottom: "Team B",
+      game_title: "",
+      team_top: "",
+      team_bottom: "",
       game_inning: 0,
       last_inning: 5,
       top: true,
@@ -32,6 +32,14 @@ const board = Vue.createApp({
     this.socket.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
+
+    fetch("/init_data.json")
+      .then((response) => response.json())
+      .then((data) => {
+        this.boardData.game_title = data.game_title;
+        this.boardData.team_top = data.team_top;
+        this.boardData.team_bottom = data.team_bottom;
+      });
   },
 });
 board.component('scoreboard', scoreboardComponent);

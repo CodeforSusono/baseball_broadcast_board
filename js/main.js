@@ -16,8 +16,8 @@ const app = Vue.createApp({
     score_top: 0,
     score_bottom: 0,
     game_start: false,
-    game_array: ["試合前", 1, 2, 3, 4, 5, 6, 7, 8, 9, "試合終了"],
-    team_items: ["　", "東京B", "横浜", "東京G", "龍野"],
+    game_array: [],
+    team_items: [],
     socket: null,
   }),
   created() {
@@ -39,6 +39,8 @@ const app = Vue.createApp({
         this.game_title = data.game_title;
         this.team_top = data.team_top;
         this.team_bottom = data.team_bottom;
+        this.game_array = data.game_array;
+        this.team_items = data.team_items;
       });
 
     this.socket.onerror = (error) => {

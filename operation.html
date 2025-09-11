@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baseball Scoreboard - Operation Panel</title>
+    <link rel="icon" href="img/c4s_icon.png" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+      .card {
+        border-width: 2px;
+      }
+      .card-header {
+        background-color: #e9ecef;
+      }
+      .card-body {
+        background-color: #f8f9fa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+          <span class="navbar-brand mb-0 h1">野球スコアボード - 操作パネル</span>
+        </div>
+      </nav>
+
+      <main class="container mt-4">
+        <!-- 上段: プレビュー -->
+        <div class="row mb-4">
+          <div class="col">
+            <div class="card">
+              <div class="card-header h5">リアルタイムプレビュー</div>
+              <div class="card-body d-flex justify-content-center">
+                <div style="transform: scale(0.8);">
+                  <scoreboard :board-data="boardData"></scoreboard>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 下段: 操作パネル -->
+        <div class="row g-4">
+          <!-- 左列 -->
+          <div class="col-lg-8">
+            <!-- 基本情報カード -->
+            <div class="card mb-4">
+              <div class="card-header h5">基本情報</div>
+              <div class="card-body">
+                <div class="mb-3 row">
+                  <label for="gameTitle" class="col-sm-3 col-form-label">タイトル</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" v-model="game_title" id="gameTitle" />
+                  </div>
+                </div>
+                <div class="mb-3 row">
+                  <label for="teamTopName" class="col-sm-3 col-form-label">先攻チーム</label>
+                  <div class="col-sm-5">
+                    <select class="form-select" v-model="team_top" id="teamTopName">
+                      <option v-for="team in team_items" :value="team">{{ team }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <label for="teamBottomName" class="col-sm-3 col-form-label">後攻チーム</label>
+                  <div class="col-sm-5">
+                    <select class="form-select" v-model="team_bottom" id="teamBottomName">
+                      <option v-for="team in team_items" :value="team">{{ team }}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BSOカウントカード -->
+            <div class="card">
+              <div class="card-header h5">BSO カウント</div>
+              <div class="card-body">
+                <div class="row align-items-center text-center mb-3">
+                  <div class="col-4 h5">B: {{ ball_cnt }}</div>
+                  <div class="col-4 h5">S: {{ strike_cnt }}</div>
+                  <div class="col-4 h5">O: {{ out_cnt }}</div>
+                </div>
+                <div class="row text-center">
+                  <div class="col-4">
+                    <div class="btn-group">
+                      <button class="btn btn-outline-secondary" @click="ballCountDown">-</button>
+                      <button class="btn btn-outline-primary" @click="ballCountUp">+</button>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="btn-group">
+                      <button class="btn btn-outline-secondary" @click="strikeCountDown">-</button>
+                      <button class="btn btn-outline-danger" @click="strikeCountUp">+</button>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="btn-group">
+                      <button class="btn btn-outline-secondary" @click="outCountDown">-</button>
+                      <button class="btn btn-outline-danger" @click="outCountUp">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer text-center">
+                <button class="btn btn-warning" @click="resetBSO">BSOリセット</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右列 -->
+          <div class="col-lg-4">
+            <!-- イニング・攻撃カード -->
+            <div class="card mb-4">
+              <div class="card-header h5">イニング・攻撃</div>
+              <div class="card-body text-center">
+                <div class="h4 mb-3">{{ inningMsg() }}</div>
+                <div class="btn-group mb-4">
+                  <button class="btn btn-outline-secondary" @click="gameBackward">&laquo; 戻る</button>
+                  <button class="btn btn-outline-secondary" @click="gameForward">進む &raquo;</button>
+                </div>
+                <!-- ランナー -->
+                <div class="position-relative mx-auto" style="width: 150px; height: 150px;">
+                  <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']">2B</button>
+                  <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']">3B</button>
+                  <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']">1B</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- スコアカード -->
+            <div class="card">
+              <div class="card-header h5">スコア</div>
+              <div class="card-body">
+                <!-- 先攻 -->
+                <div class="row align-items-center mb-3">
+                  <div class="col-5">{{ team_top }}</div>
+                  <div class="col-3 h4 text-center mb-0">{{ score_top }}</div>
+                  <div class="col-4">
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-outline-secondary" @click="decrementScoreTop">-</button>
+                      <button class="btn btn-sm btn-outline-primary" @click="incrementScoreTop">+</button>
+                    </div>
+                  </div>
+                </div>
+                <!-- 後攻 -->
+                <div class="row align-items-center">
+                  <div class="col-5">{{ team_bottom }}</div>
+                  <div class="col-3 h4 text-center mb-0">{{ score_bottom }}</div>
+                  <div class="col-4">
+                    <div class="btn-group">
+                      <button class="btn btn-sm btn-outline-secondary" @click="decrementScoreBottom">-</button>
+                      <button class="btn btn-sm btn-outline-primary" @click="incrementScoreBottom">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/vue.global.js"></script>
+    <script src="js/Scoreboard.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

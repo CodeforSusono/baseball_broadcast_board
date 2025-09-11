@@ -1,11 +1,11 @@
 .bg-custom-class {
-  background-color:  #eeb50a;
+  background-color: #eeb50a;
 }
 div.power {
-  color: #ffffff;
+  color: #333; /* 背景が白になるため、文字色を濃いグレーに変更 */
 }
 
-body
-{
-  color: #ffffff;
+body {
+  color: #333; /* 見やすい文字色に変更 */
+  background-color: #fff; /* 白背景に変更 */
 }

@@ -3,9 +3,18 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 const server = http.createServer((req, res) => {
-  let filePath = "." + req.url;
-  if (filePath === "./") {
-    filePath = "./index.html";
+  const publicDir = path.resolve("./");
+  let requestedUrl = req.url;
+  if (requestedUrl === "/") {
+    requestedUrl = "/index.html";
+  }
+  const intendedPath = path.join(publicDir, requestedUrl);
+  const filePath = path.resolve(intendedPath);
+
+  if (!filePath.startsWith(publicDir)) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("Forbidden");
+      return;
   }
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType =

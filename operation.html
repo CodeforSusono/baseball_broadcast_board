@@ -17,6 +17,10 @@
       .card-body {
         background-color: #f8f9fa;
       }
+      div.power.powered-by-black {
+        color: black;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -35,7 +39,7 @@
               <div class="card-header h5">リアルタイムプレビュー</div>
               <div class="card-body d-flex justify-content-center">
                 <div style="transform: scale(0.8);">
-                  <scoreboard :board-data="boardData"></scoreboard>
+                  <scoreboard :board-data="boardData" :powered-by-class="'powered-by-black'"></scoreboard>
                 </div>
               </div>
             </div>

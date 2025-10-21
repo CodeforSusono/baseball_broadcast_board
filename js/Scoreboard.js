@@ -1,5 +1,5 @@
 const scoreboardComponent = {
-  props: ["boardData"],
+  props: ["boardData", "poweredByClass"],
   template: `
   <div class="col-sm">
     <svg
@@ -163,7 +163,7 @@ const scoreboardComponent = {
     >
       {{ boardData.game_title }}
     </div>
-    <div class="power">
+    <div class="power" :class="poweredByClass">
       Powered by　<img
         src="img/c4s.png"
         alt="Code for SUSONO"

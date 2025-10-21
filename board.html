@@ -7,6 +7,12 @@
     <link rel="icon" href="img/c4s_icon.png" />
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/main.css" />
+  <style>
+      div.power.powered-by-white {
+        color: white;
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body style="background-color: green;">
     <div id="board">
@@ -14,7 +20,7 @@
         <div class="container">
           <div class="row">
             <div class="offset-sm col-sm">
-              <scoreboard :board-data="boardData"></scoreboard>
+              <scoreboard :board-data="boardData" :powered-by-class="'powered-by-white'"></scoreboard>
             </div>
           </div>
         </div>

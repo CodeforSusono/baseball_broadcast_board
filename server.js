@@ -2,10 +2,30 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+const logger = {
+  log: (...args) => {
+    if (!isProduction) {
+      console.log(...args);
+    }
+  }
+};
+
 const server = http.createServer((req, res) => {
-  let filePath = "." + req.url;
-  if (filePath === "./") {
-    filePath = "./index.html";
+  const publicDir = path.resolve("./");
+  let requestedUrl = req.url;
+  if (requestedUrl === "/") {
+    requestedUrl = "/index.html";
+  }
+  const intendedPath = path.join(publicDir, requestedUrl);
+  const filePath = path.resolve(intendedPath);
+
+  if (!filePath.startsWith(publicDir)) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("Forbidden");
+      return;
   }
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType =
@@ -38,9 +58,9 @@ const server = http.createServer((req, res) => {
 });
 const wss = new WebSocket.Server({ server });
 wss.on("connection", (ws) => {
-  console.log("Client connected");
+  logger.log("Client connected");
   ws.on("message", (message) => {
-    console.log("Received: %s", message);
+    logger.log("Received: %s", message);
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message.toString());
@@ -48,12 +68,12 @@ wss.on("connection", (ws) => {
     });
   });
   ws.on("close", () => {
-    console.log("Client disconnected");
+    logger.log("Client disconnected");
   });
   ws.on("error", (error) => {
     console.error("WebSocket error:", error);
   });
 });
 server.listen(8080, () => {
-  console.log("Server is listening on port 8080");
+  logger.log("Server is listening on port 8080");
 });

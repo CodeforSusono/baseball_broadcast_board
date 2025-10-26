@@ -8,18 +8,150 @@
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/main.css" />
     <style>
+      /* CSS Variables for Color Scheme */
+      :root {
+        --primary-color: #4a4a9f;      /* Code for SUSONO Purple */
+        --secondary-color: #2d8659;     /* Baseball Field Green */
+        --accent-color: #ff6b35;        /* Accent Orange */
+        --light-bg: #f0f4f8;            /* Light Background */
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f0f2 100%);
+        min-height: 100vh;
+      }
+
+      /* Navigation Bar */
+      .navbar {
+        background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .navbar-brand {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      /* Card Styling */
       .card {
-        border-width: 2px;
+        border: 2px solid var(--primary-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        background: white;
       }
+
       .card-header {
-        background-color: #e9ecef;
+        background: linear-gradient(135deg, #7a7acf 0%, #8a8adf 100%);
+        color: white;
+        font-weight: 600;
+        border-bottom: none;
       }
+
       .card-body {
-        background-color: #f8f9fa;
+        background-color: #ffffff;
       }
+
+      .card-footer {
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+      }
+
+      /* Button Styling */
+      .btn-primary:not(.position-relative .btn) {
+        background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%);
+        border: none;
+        font-weight: 600;
+      }
+
+      .btn-primary:not(.position-relative .btn):hover {
+        background: linear-gradient(90deg, #3a3a8f 0%, #4a4a9f 100%);
+      }
+
+      .btn-outline-primary:not(.position-relative .btn) {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+
+      .btn-outline-primary:not(.position-relative .btn):hover {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
       div.power.powered-by-black {
         color: black;
         font-weight: bold;
+      }
+
+      /* +/- Button Colors */
+      .btn-group .btn:last-child,
+      .btn-outline-primary {
+        background-color: transparent;
+        color: #0d6efd;
+        border-color: #0d6efd;
+      }
+
+      .btn-group .btn:last-child:hover,
+      .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+      }
+
+      .btn-group .btn:first-child,
+      .btn-outline-secondary {
+        background-color: transparent;
+        color: #dc3545;
+        border-color: #dc3545;
+      }
+
+      .btn-group .btn:first-child:hover,
+      .btn-outline-secondary:hover {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+      }
+
+      /* Base Runner Buttons (1B, 2B, 3B) */
+      .position-relative.mx-auto .btn.btn-outline-secondary {
+        background-color: transparent !important;
+        background-image: none !important;
+        color: #ffc107 !important;
+        border-color: #ffc107 !important;
+      }
+
+      .position-relative.mx-auto .btn.btn-outline-secondary:hover {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+        background-image: none !important;
+        color: #ffc107 !important;
+        border-color: #ffc107 !important;
+      }
+
+      .position-relative.mx-auto .btn.btn-primary {
+        background-color: #ffc107 !important;
+        background-image: none !important;
+        color: white !important;
+        border-color: #ffc107 !important;
+      }
+
+      .position-relative.mx-auto .btn.btn-primary:hover {
+        background-color: #e0a800 !important;
+        background-image: none !important;
+        color: white !important;
+        border-color: #e0a800 !important;
+      }
+
+      .position-relative.mx-auto .btn.btn-primary:focus,
+      .position-relative.mx-auto .btn.btn-primary:active {
+        background-color: #ffc107 !important;
+        background-image: none !important;
+        color: white !important;
+        border-color: #ffc107 !important;
+      }
+
+      /* Reduce bottom padding for base runner area */
+      .position-relative.mx-auto {
+        margin-bottom: 0 !important;
       }
     </style>
   </head>
@@ -27,7 +159,7 @@
     <div id="app">
       <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-          <span class="navbar-brand mb-0 h1">野球スコアボード - 操作パネル</span>
+          <span class="navbar-brand mb-0 h1">⚾ 野球スコアボード - 操作パネル</span>
         </div>
       </nav>
 
@@ -119,7 +251,7 @@
           <div class="col-lg-4">
             <!-- イニング・攻撃カード -->
             <div class="card mb-4">
-              <div class="card-header h5">イニング・攻撃</div>
+              <div class="card-header h5">攻守交代・出塁</div>
               <div class="card-body text-center">
                 <div class="h4 mb-3">{{ inningMsg() }}</div>
                 <div class="btn-group mb-4">
@@ -127,7 +259,7 @@
                   <button class="btn btn-outline-secondary" @click="gameForward">進む &raquo;</button>
                 </div>
                 <!-- ランナー -->
-                <div class="position-relative mx-auto" style="width: 150px; height: 150px;">
+                <div class="position-relative mx-auto" style="width: 150px; height: 100px;">
                   <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']">2B</button>
                   <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']">3B</button>
                   <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']">1B</button>

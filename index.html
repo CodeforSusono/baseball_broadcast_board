@@ -258,6 +258,16 @@
               <div id="collapseUsage" class="accordion-collapse collapse" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
                 <div class="accordion-body">
 
+                  <!-- 準備 -->
+                  <h6 class="fw-bold mb-2">0. 準備</h6>
+                  <p class="mb-2">大会情報（大会名、参加チーム名など）を設定します。</p>
+                  <div class="alert alert-warning mb-3" role="alert">
+                    <small>
+                      <strong>⚙️ 大会情報の設定</strong><br>
+                      詳しい設定方法は <a href="#collapseConfig" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseConfig" class="alert-link fw-bold">こちら</a> をご覧ください。
+                    </small>
+                  </div>
+
                   <!-- サーバー起動 -->
                   <h6 class="fw-bold mb-2">1. サーバーを起動</h6>
                   <p class="mb-2">コマンドラインで以下を実行してください:</p>
@@ -299,6 +309,89 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
                 </div>
               </div>
             </div>
+
+            <!-- 大会情報の設定 -->
+            <div class="accordion-item mt-3">
+              <h2 class="accordion-header" id="headingConfig">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfig" aria-expanded="false" aria-controls="collapseConfig">
+                  <strong>⚙️ 大会情報の設定</strong>
+                </button>
+              </h2>
+              <div id="collapseConfig" class="accordion-collapse collapse" aria-labelledby="headingConfig" data-bs-parent="#usageAccordion">
+                <div class="accordion-body">
+
+                  <p class="mb-3">操作パネルの初期値（大会名、チーム名など）は <code>init_data.json</code> ファイルで設定します。<br>
+                  自動生成ツール <code>npm run init</code> を使うと簡単に作成できます。</p>
+
+                  <!-- インタラクティブモード -->
+                  <h6 class="fw-bold mb-2">方法1: インタラクティブモード（推奨）</h6>
+                  <p class="mb-2">対話形式で質問に答えていくだけで設定ファイルを生成します:</p>
+                  <pre class="bg-light p-2 rounded"><code>npm run init</code></pre>
+
+                  <div class="alert alert-info mb-3" role="alert">
+                    <small>
+                      <strong>実行例:</strong><br>
+                      大会名を入力してください [現在: 大会名]: <strong>春季リーグ戦</strong><br>
+                      試合の最終イニングを入力してください [現在: 9]: <strong>9</strong><br>
+                      参加チーム名を入力してください [入力終了: enterのみ]:<br>
+                      &nbsp;&nbsp;チーム 1: <strong>東京ドラゴンズ</strong><br>
+                      &nbsp;&nbsp;チーム 2: <strong>横浜スターズ</strong><br>
+                      &nbsp;&nbsp;チーム 3: <strong>大阪タイガース</strong><br>
+                      &nbsp;&nbsp;チーム 4: <em>(Enterで終了)</em>
+                    </small>
+                  </div>
+
+                  <!-- YAMLファイルモード -->
+                  <h6 class="fw-bold mb-2">方法2: YAMLファイルから生成</h6>
+                  <p class="mb-2">設定ファイル（YAML形式）を作成して生成します:</p>
+
+                  <p class="mb-1"><strong>ステップ1:</strong> サンプルファイルをコピー</p>
+                  <pre class="bg-light p-2 rounded"><code>cp config.yaml.example my-config.yaml</code></pre>
+
+                  <p class="mb-1 mt-2"><strong>ステップ2:</strong> ファイルを編集</p>
+                  <pre class="bg-light p-2 rounded"><code>game_title: 春季リーグ戦
+last_inning: 9
+team_names:
+  - 東京ドラゴンズ
+  - 横浜スターズ
+  - 大阪タイガース</code></pre>
+
+                  <p class="mb-1 mt-2"><strong>ステップ3:</strong> 設定ファイルから生成</p>
+                  <pre class="bg-light p-2 rounded"><code>npm run init my-config.yaml</code></pre>
+
+                  <!-- コマンドライン引数モード -->
+                  <h6 class="fw-bold mb-2 mt-3">方法3: コマンドライン引数で直接指定</h6>
+                  <p class="mb-2">一行のコマンドですべての情報を指定します:</p>
+                  <pre class="bg-light p-2 rounded"><code>npm run init -- -t "春季リーグ戦" -i 9 --teams "東京,横浜,大阪"</code></pre>
+
+                  <p class="text-muted small mb-3">
+                    オプション:
+                    <code>-t</code> 大会名、
+                    <code>-i</code> 最終イニング(1-9)、
+                    <code>--teams</code> 参加チーム(カンマ区切り)
+                  </p>
+
+                  <!-- 自動生成ルール -->
+                  <h6 class="fw-bold mb-2 mt-3">自動生成ルール</h6>
+                  <ul class="mb-3">
+                    <li><strong>先攻チーム:</strong> 参加チームの1番目</li>
+                    <li><strong>後攻チーム:</strong> 参加チームの2番目</li>
+                    <li><strong>イニング数:</strong> 1〜9回（試合前・試合終了を自動追加）</li>
+                    <li><strong>参加チーム:</strong> 最低2チーム必要</li>
+                  </ul>
+
+                  <!-- バックアップ -->
+                  <div class="alert alert-success mb-0" role="alert">
+                    <small>
+                      <strong>💡 安心のバックアップ機能</strong><br>
+                      既存の <code>init_data.json</code> がある場合、自動的に <code>init_data.json.bak</code> にバックアップされます。
+                    </small>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

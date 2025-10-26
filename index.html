@@ -44,6 +44,65 @@
   <!-- メインコンテンツ -->
   <div class="main-content">
     <div class="container">
+      <!-- 使い方セクション -->
+      <div class="row justify-content-center mb-4">
+        <div class="col-lg-10 col-xl-8">
+          <div class="accordion" id="usageAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingUsage">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsage" aria-expanded="true" aria-controls="collapseUsage">
+                  <strong>使い方</strong>
+                </button>
+              </h2>
+              <div id="collapseUsage" class="accordion-collapse collapse show" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
+                <div class="accordion-body">
+
+                  <!-- サーバー起動 -->
+                  <h6 class="fw-bold mb-2">1. サーバーを起動</h6>
+                  <p class="mb-2">コマンドラインで以下を実行してください:</p>
+                  <pre class="bg-light p-2 rounded"><code>node server.js</code></pre>
+                  <p class="text-muted small mb-3">サーバーはポート8080で起動します。</p>
+
+                  <!-- 基本的な使用フロー -->
+                  <h6 class="fw-bold mb-2">2. 基本的な使用フロー</h6>
+                  <ol class="mb-3">
+                    <li><strong>操作パネル</strong>を開いて試合情報(チーム名、イニングなど)を設定</li>
+                    <li><strong>表示ボード</strong>を開いてスコアボードを表示</li>
+                    <li>OBSのブラウザソースに表示ボードのURLを設定</li>
+                    <li>操作パネルで変更した内容が表示ボードにリアルタイム反映されます</li>
+                  </ol>
+
+                  <!-- ネットワーク越しアクセス -->
+                  <h6 class="fw-bold mb-2">3. 別のPCからアクセスする場合</h6>
+                  <p class="mb-2">サーバーを起動したPCのIPアドレスを確認します:</p>
+                  <pre class="bg-light p-2 rounded"><code># Linux/Mac
+hostname -I
+
+# Windows
+ipconfig</code></pre>
+                  <p class="mb-2">別のPCのブラウザで以下のようにアクセスします:</p>
+                  <pre class="bg-light p-2 rounded"><code>http://&lt;サーバーのIPアドレス&gt;:8080/operation.html
+http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
+                  <p class="text-muted small mb-3">例: <code>http://192.168.1.100:8080/board.html</code></p>
+
+                  <!-- OBS設定 -->
+                  <h6 class="fw-bold mb-2">4. OBSでの設定方法</h6>
+                  <ol class="mb-0">
+                    <li>OBSで「ソース」→「追加」→「ブラウザ」を選択</li>
+                    <li>URLに表示ボードのアドレスを入力 (例: <code>http://192.168.1.100:8080/board.html</code>)</li>
+                    <li>幅: 1920、高さ: 1080 を推奨</li>
+                    <li>「カスタムCSS」で背景を透過: <code>body { background-color: rgba(0, 0, 0, 0); }</code></li>
+                    <li>クロマキー合成が必要な場合はフィルタで緑色を抜いてください</li>
+                  </ol>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カードセクション -->
       <div class="row justify-content-center g-4">
         <!-- 操作パネルカード -->
         <div class="col-auto">
@@ -51,7 +110,7 @@
             <div class="card-body">
               <h5 class="card-title">操作パネル</h5>
               <p class="card-text">試合のスコア、イニング、ランナー状況などをリアルタイムで更新します。</p>
-              <a href="/operation.html" class="btn btn-primary">操作パネルを開く</a>
+              <a href="/operation.html" class="btn btn-primary" target="_blank" rel="noopener noreferrer">操作パネルを開く</a>
             </div>
           </div>
         </div>
@@ -61,7 +120,7 @@
             <div class="card-body">
               <h5 class="card-title">表示ボード</h5>
               <p class="card-text">OBS等の配信ソフトで取り込むためのスコアボード画面です。</p>
-              <a href="/board.html" class="btn btn-secondary">表示ボードを開く</a>
+              <a href="/board.html" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">表示ボードを開く</a>
             </div>
           </div>
         </div>
@@ -78,6 +137,9 @@
        </span>
     </div>
   </footer>
+
+  <!-- Bootstrap JavaScript Bundle -->
+  <script src="js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

@@ -8,27 +8,228 @@
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
+    /* CSS Variables for Color Scheme */
+    :root {
+      --primary-color: #4a4a9f;      /* Code for SUSONO Purple */
+      --secondary-color: #2d8659;     /* Baseball Field Green */
+      --accent-color: #ff6b35;        /* Accent Orange */
+      --light-bg: #f0f4f8;            /* Light Background */
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --card-shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
     html, body {
       height: 100%;
     }
+
     body {
       display: flex;
       flex-direction: column;
-      background-color: #f8f9fa; /* ページ全体に薄いグレーの背景色を設定 */
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8f0f2 100%);
+      animation: fadeIn 0.6s ease-in;
     }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Navigation Bar */
+    .navbar {
+      background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Main Content */
     .main-content {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 2rem 0;
     }
+
+    /* Accordion Styling */
+    .accordion-button {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #5a5aaf 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border: none;
+    }
+
+    .accordion-button:not(.collapsed) {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #5a5aaf 100%);
+      color: white;
+      box-shadow: none;
+    }
+
+    .accordion-button:focus {
+      box-shadow: 0 0 0 0.25rem rgba(74, 74, 159, 0.25);
+      border-color: var(--primary-color);
+    }
+
+    .accordion-button::after {
+      filter: brightness(0) invert(1);
+    }
+
+    .accordion-item {
+      border: 2px solid var(--primary-color);
+      border-radius: 8px !important;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+
+    .accordion-body {
+      background-color: #ffffff;
+      padding: 2rem;
+    }
+
+    .accordion-body h6 {
+      color: var(--primary-color);
+      margin-top: 1.5rem;
+    }
+
+    .accordion-body h6:first-child {
+      margin-top: 0;
+    }
+
+    .accordion-body pre {
+      background-color: #f8f9fa;
+      border-left: 4px solid var(--primary-color);
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .accordion-body code {
+      background-color: #e9ecef;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      color: #d63384;
+    }
+
+    .accordion-body pre code {
+      background-color: transparent;
+      padding: 0;
+      color: #212529;
+    }
+
+    /* Card Styling */
     .card {
-      width: 18rem;
-      border-width: 2px; /* 枠線を太くする */
+      width: 22rem;
+      border: none;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      background: white;
     }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .card::before {
+      content: '';
+      display: block;
+      height: 6px;
+      width: 100%;
+    }
+
+    .card.card-primary::before {
+      background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%);
+    }
+
+    .card.card-secondary::before {
+      background: linear-gradient(90deg, var(--secondary-color) 0%, #3da66f 100%);
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    .card-text {
+      color: #6c757d;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    /* Button Styling */
+    .btn-primary {
+      background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%);
+      border: none;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #3a3a8f 0%, #4a4a9f 100%);
+      transform: scale(1.05);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(90deg, var(--secondary-color) 0%, #3da66f 100%);
+      border: none;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(90deg, #1d7649 0%, #2d8659 100%);
+      transform: scale(1.05);
+    }
+
+    /* Footer */
     .footer {
-      padding: 1rem 0;
+      padding: 1.5rem 0;
       text-align: center;
+      background-color: #ffffff;
+      border-top: 1px solid #dee2e6;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .card {
+        width: 100%;
+        max-width: 22rem;
+      }
+
+      .accordion-body {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
@@ -37,7 +238,7 @@
   <!-- ナビゲーションバー -->
   <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">野球スコアボード</span>
+      <span class="navbar-brand mb-0 h1">⚾ 野球スコアボード</span>
     </div>
   </nav>
 
@@ -50,11 +251,11 @@
           <div class="accordion" id="usageAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header" id="headingUsage">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsage" aria-expanded="true" aria-controls="collapseUsage">
-                  <strong>使い方</strong>
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsage" aria-expanded="false" aria-controls="collapseUsage">
+                  <strong>📖 使い方ガイド</strong>
                 </button>
               </h2>
-              <div id="collapseUsage" class="accordion-collapse collapse show" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
+              <div id="collapseUsage" class="accordion-collapse collapse" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
                 <div class="accordion-body">
 
                   <!-- サーバー起動 -->
@@ -106,8 +307,9 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
       <div class="row justify-content-center g-4">
         <!-- 操作パネルカード -->
         <div class="col-auto">
-          <div class="card text-center">
+          <div class="card card-primary text-center">
             <div class="card-body">
+              <span class="card-icon">🎮</span>
               <h5 class="card-title">操作パネル</h5>
               <p class="card-text">試合のスコア、イニング、ランナー状況などをリアルタイムで更新します。</p>
               <a href="/operation.html" class="btn btn-primary" target="_blank" rel="noopener noreferrer">操作パネルを開く</a>
@@ -116,8 +318,9 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
         </div>
         <!-- 表示ボードカード -->
         <div class="col-auto">
-          <div class="card text-center">
+          <div class="card card-secondary text-center">
             <div class="card-body">
+              <span class="card-icon">📺</span>
               <h5 class="card-title">表示ボード</h5>
               <p class="card-text">OBS等の配信ソフトで取り込むためのスコアボード画面です。</p>
               <a href="/board.html" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">表示ボードを開く</a>

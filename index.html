@@ -301,9 +301,7 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
                   <ol class="mb-0">
                     <li>OBSで「ソース」→「追加」→「ブラウザ」を選択</li>
                     <li>URLに表示ボードのアドレスを入力 (例: <code>http://192.168.1.100:8080/board.html</code>)</li>
-                    <li>幅: 1920、高さ: 1080 を推奨</li>
-                    <li>「カスタムCSS」で背景を透過: <code>body { background-color: rgba(0, 0, 0, 0); }</code></li>
-                    <li>クロマキー合成が必要な場合はフィルタで緑色を抜いてください</li>
+                    <li>クロマキー合成で緑色を抜いてください</li>
                   </ol>
 
                 </div>
@@ -334,9 +332,9 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
                       大会名を入力してください [現在: 大会名]: <strong>春季リーグ戦</strong><br>
                       試合の最終イニングを入力してください [現在: 9]: <strong>9</strong><br>
                       参加チーム名を入力してください [入力終了: enterのみ]:<br>
-                      &nbsp;&nbsp;チーム 1: <strong>東京ドラゴンズ</strong><br>
-                      &nbsp;&nbsp;チーム 2: <strong>横浜スターズ</strong><br>
-                      &nbsp;&nbsp;チーム 3: <strong>大阪タイガース</strong><br>
+                      &nbsp;&nbsp;チーム 1: <strong>東京D</strong><br>
+                      &nbsp;&nbsp;チーム 2: <strong>横浜S</strong><br>
+                      &nbsp;&nbsp;チーム 3: <strong>大阪T</strong><br>
                       &nbsp;&nbsp;チーム 4: <em>(Enterで終了)</em>
                     </small>
                   </div>
@@ -352,9 +350,9 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
                   <pre class="bg-light p-2 rounded"><code>game_title: 春季リーグ戦
 last_inning: 9
 team_names:
-  - 東京ドラゴンズ
-  - 横浜スターズ
-  - 大阪タイガース</code></pre>
+  - 東京D
+  - 横浜S
+  - 大阪T</code></pre>
 
                   <p class="mb-1 mt-2"><strong>ステップ3:</strong> 設定ファイルから生成</p>
                   <pre class="bg-light p-2 rounded"><code>npm run init my-config.yaml</code></pre>
@@ -362,7 +360,7 @@ team_names:
                   <!-- コマンドライン引数モード -->
                   <h6 class="fw-bold mb-2 mt-3">方法3: コマンドライン引数で直接指定</h6>
                   <p class="mb-2">一行のコマンドですべての情報を指定します:</p>
-                  <pre class="bg-light p-2 rounded"><code>npm run init -- -t "春季リーグ戦" -i 9 --teams "東京,横浜,大阪"</code></pre>
+                  <pre class="bg-light p-2 rounded"><code>npm run init -- -t "春季リーグ戦" -i 9 --teams "東京D,横浜S,大阪T"</code></pre>
 
                   <p class="text-muted small mb-3">
                     オプション:

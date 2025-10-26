@@ -135,9 +135,7 @@ graph LR;
 
    - OBSで「ソース」→「追加」→「ブラウザ」を選択
    - URLに表示ボードのアドレスを入力: `http://192.168.1.100:8080/board.html`
-   - 幅: 1920、高さ: 1080 を推奨
-   - カスタムCSSで背景を透過: `body { background-color: rgba(0, 0, 0, 0); }`
-   - クロマキー合成が必要な場合はフィルタで緑色を抜く
+   - クロマキー合成で緑色を抜く
 
 WebSocket接続は、アクセスしたURLのホスト名を自動的に使用するため、追加の設定は不要です。
 
@@ -159,16 +157,17 @@ npm run init
 
 実行例:
 ```
-大会名を入力してください [現在: 大会名]: 春季リーグ戦
-試合の最終イニングを入力してください [現在: 9]: 9
+大会名を入力してください [現在: 大会名]: 夏季大会
+試合の最終イニングを入力してください [現在: 9]: 7
 参加チーム名を入力してください [入力終了: enterのみ]:
-  チーム 1: 東京ドラゴンズ
-  チーム 2: 横浜スターズ
-  チーム 3: 大阪タイガース
-  チーム 4:
+  チーム 1: A
+  チーム 2: B
+  チーム 3: C
+  チーム 4: D
+  チーム 5: E
 
-✓ 先攻チーム: 東京ドラゴンズ
-✓ 後攻チーム: 横浜スターズ
+✓ 先攻チーム: A
+✓ 後攻チーム: B
 ✓ init_data.json を生成しました
 ```
 
@@ -189,13 +188,14 @@ npm run init my-config.yaml
 
 YAMLファイルの例（`my-config.yaml`）:
 ```yaml
-game_title: 春季リーグ戦
-last_inning: 9
+game_title: 夏季大会
+last_inning: 7
 team_names:
-  - 東京ドラゴンズ
-  - 横浜スターズ
-  - 大阪タイガース
-  - 名古屋ホエールズ
+  - A
+  - B
+  - C
+  - D
+  - E
 ```
 
 #### 3. コマンドライン引数で生成
@@ -203,7 +203,7 @@ team_names:
 一行のコマンドで直接指定します:
 
 ```bash
-npm run init -- -t "春季リーグ戦" -i 9 --teams "東京ドラゴンズ,横浜スターズ,大阪タイガース"
+npm run init -- -t "夏季大会" -i 7 --teams "A,B,C,D,E"
 ```
 
 オプション:
@@ -232,12 +232,12 @@ npm run init -- -t "春季リーグ戦" -i 9 --teams "東京ドラゴンズ,横�
 
 ```json
 {
-  "game_title": "春季リーグ戦",
-  "team_top": "東京ドラゴンズ",
-  "team_bottom": "横浜スターズ",
-  "game_array": ["試合前", 1, 2, 3, 4, 5, 6, 7, 8, 9, "試合終了"],
-  "team_items": ["　", "東京ドラゴンズ", "横浜スターズ", "大阪タイガース"],
-  "last_inning": 9
+  "game_title": "夏季大会",
+  "team_top": "A",
+  "team_bottom": "B",
+  "game_array": ["試合前", 1, 2, 3, 4, 5, 6, 7, "試合終了"],
+  "team_items": ["　", "A", "B", "C", "D","E"],
+  "last_inning": 7
 }
 ```
 
@@ -259,14 +259,3 @@ npm run init -- -t "春季リーグ戦" -i 9 --teams "東京ドラゴンズ,横�
 - [ws (v8.13.0)](https://github.com/websockets/ws) - [MIT License](https://github.com/websockets/ws/blob/master/LICENSE)
 - [js-yaml (v4.1.0)](https://github.com/nodeca/js-yaml) - [MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
 
-## 開発者向け情報
-
-### アーキテクチャの詳細
-
-詳細な実装ガイドやアーキテクチャについては、[CLAUDE.md](CLAUDE.md) を参照してください。
-
-### 主な変更履歴
-
-- **マルチPC対応**: WebSocket URLを動的に生成することで、localhost以外からのアクセスに対応
-- **設定自動生成ツール**: `generate-init-data.js` により、`init_data.json` を簡単に生成可能
-- **洗練されたUI**: index.htmlのデザインを刷新し、使い方ガイドを追加

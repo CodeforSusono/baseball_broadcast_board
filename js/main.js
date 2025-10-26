@@ -45,6 +45,9 @@ const app = Vue.createApp({
         this.team_bottom = data.team_bottom;
         this.game_array = data.game_array;
         this.team_items = data.team_items;
+        if (data.last_inning !== undefined) {
+          this.last_inning = data.last_inning;
+        }
       });
 
     this.socket.onerror = (error) => {

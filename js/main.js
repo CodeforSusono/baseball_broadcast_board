@@ -21,7 +21,11 @@ const app = Vue.createApp({
     socket: null,
   }),
   created() {
-    this.socket = new WebSocket("ws://localhost:8080");
+    // Dynamically generate WebSocket URL based on current page location
+    // This allows access from different PCs (localhost, LAN IP, domain name)
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.host; // includes hostname and port
+    this.socket = new WebSocket(`${wsProtocol}//${wsHost}`);
 
     this.socket.onopen = () => {
       console.log("WebSocket connection established for control panel.");

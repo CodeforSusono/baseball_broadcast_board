@@ -8,27 +8,228 @@
   <link rel="stylesheet" href="css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
+    /* CSS Variables for Color Scheme */
+    :root {
+      --primary-color: #4a4a9f;      /* Code for SUSONO Purple */
+      --secondary-color: #2d8659;     /* Baseball Field Green */
+      --accent-color: #ff6b35;        /* Accent Orange */
+      --light-bg: #f0f4f8;            /* Light Background */
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --card-shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
     html, body {
       height: 100%;
     }
+
     body {
       display: flex;
       flex-direction: column;
-      background-color: #f8f9fa; /* ページ全体に薄いグレーの背景色を設定 */
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8f0f2 100%);
+      animation: fadeIn 0.6s ease-in;
     }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Navigation Bar */
+    .navbar {
+      background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Main Content */
     .main-content {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 2rem 0;
     }
+
+    /* Accordion Styling */
+    .accordion-button {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #5a5aaf 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border: none;
+    }
+
+    .accordion-button:not(.collapsed) {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #5a5aaf 100%);
+      color: white;
+      box-shadow: none;
+    }
+
+    .accordion-button:focus {
+      box-shadow: 0 0 0 0.25rem rgba(74, 74, 159, 0.25);
+      border-color: var(--primary-color);
+    }
+
+    .accordion-button::after {
+      filter: brightness(0) invert(1);
+    }
+
+    .accordion-item {
+      border: 2px solid var(--primary-color);
+      border-radius: 8px !important;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+
+    .accordion-body {
+      background-color: #ffffff;
+      padding: 2rem;
+    }
+
+    .accordion-body h6 {
+      color: var(--primary-color);
+      margin-top: 1.5rem;
+    }
+
+    .accordion-body h6:first-child {
+      margin-top: 0;
+    }
+
+    .accordion-body pre {
+      background-color: #f8f9fa;
+      border-left: 4px solid var(--primary-color);
+      padding: 1rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .accordion-body code {
+      background-color: #e9ecef;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      color: #d63384;
+    }
+
+    .accordion-body pre code {
+      background-color: transparent;
+      padding: 0;
+      color: #212529;
+    }
+
+    /* Card Styling */
     .card {
-      width: 18rem;
-      border-width: 2px; /* 枠線を太くする */
+      width: 22rem;
+      border: none;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      background: white;
     }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .card::before {
+      content: '';
+      display: block;
+      height: 6px;
+      width: 100%;
+    }
+
+    .card.card-primary::before {
+      background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%);
+    }
+
+    .card.card-secondary::before {
+      background: linear-gradient(90deg, var(--secondary-color) 0%, #3da66f 100%);
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    .card-text {
+      color: #6c757d;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    /* Button Styling */
+    .btn-primary {
+      background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%);
+      border: none;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #3a3a8f 0%, #4a4a9f 100%);
+      transform: scale(1.05);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(90deg, var(--secondary-color) 0%, #3da66f 100%);
+      border: none;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(90deg, #1d7649 0%, #2d8659 100%);
+      transform: scale(1.05);
+    }
+
+    /* Footer */
     .footer {
-      padding: 1rem 0;
+      padding: 1.5rem 0;
       text-align: center;
+      background-color: #ffffff;
+      border-top: 1px solid #dee2e6;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .card {
+        width: 100%;
+        max-width: 22rem;
+      }
+
+      .accordion-body {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
@@ -37,31 +238,183 @@
   <!-- ナビゲーションバー -->
   <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">野球スコアボード</span>
+      <span class="navbar-brand mb-0 h1">⚾ 野球スコアボード</span>
     </div>
   </nav>
 
   <!-- メインコンテンツ -->
   <div class="main-content">
     <div class="container">
+      <!-- 使い方セクション -->
+      <div class="row justify-content-center mb-4">
+        <div class="col-lg-10 col-xl-8">
+          <div class="accordion" id="usageAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingUsage">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsage" aria-expanded="false" aria-controls="collapseUsage">
+                  <strong>📖 使い方ガイド</strong>
+                </button>
+              </h2>
+              <div id="collapseUsage" class="accordion-collapse collapse" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
+                <div class="accordion-body">
+
+                  <!-- 準備 -->
+                  <h6 class="fw-bold mb-2">0. 準備</h6>
+                  <p class="mb-2">大会情報（大会名、参加チーム名など）を設定します。</p>
+                  <div class="alert alert-warning mb-3" role="alert">
+                    <small>
+                      <strong>⚙️ 大会情報の設定</strong><br>
+                      詳しい設定方法は <a href="#collapseConfig" data-bs-toggle="collapse" aria-expanded="false" aria-controls="collapseConfig" class="alert-link fw-bold">こちら</a> をご覧ください。
+                    </small>
+                  </div>
+
+                  <!-- サーバー起動 -->
+                  <h6 class="fw-bold mb-2">1. サーバーを起動</h6>
+                  <p class="mb-2">コマンドラインで以下を実行してください:</p>
+                  <pre class="bg-light p-2 rounded"><code>node server.js</code></pre>
+                  <p class="text-muted small mb-3">サーバーはポート8080で起動します。</p>
+
+                  <!-- 基本的な使用フロー -->
+                  <h6 class="fw-bold mb-2">2. 基本的な使用フロー</h6>
+                  <ol class="mb-3">
+                    <li><strong>操作パネル</strong>を開いて試合情報(チーム名、イニングなど)を設定</li>
+                    <li><strong>表示ボード</strong>を開いてスコアボードを表示</li>
+                    <li>OBSのブラウザソースに表示ボードのURLを設定</li>
+                    <li>操作パネルで変更した内容が表示ボードにリアルタイム反映されます</li>
+                  </ol>
+
+                  <!-- ネットワーク越しアクセス -->
+                  <h6 class="fw-bold mb-2">3. 別のPCからアクセスする場合</h6>
+                  <p class="mb-2">サーバーを起動したPCのIPアドレスを確認します:</p>
+                  <pre class="bg-light p-2 rounded"><code># Linux/Mac
+hostname -I
+
+# Windows
+ipconfig</code></pre>
+                  <p class="mb-2">別のPCのブラウザで以下のようにアクセスします:</p>
+                  <pre class="bg-light p-2 rounded"><code>http://&lt;サーバーのIPアドレス&gt;:8080/operation.html
+http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
+                  <p class="text-muted small mb-3">例: <code>http://192.168.1.100:8080/board.html</code></p>
+
+                  <!-- OBS設定 -->
+                  <h6 class="fw-bold mb-2">4. OBSでの設定方法</h6>
+                  <ol class="mb-0">
+                    <li>OBSで「ソース」→「追加」→「ブラウザ」を選択</li>
+                    <li>URLに表示ボードのアドレスを入力 (例: <code>http://192.168.1.100:8080/board.html</code>)</li>
+                    <li>クロマキー合成で緑色を抜いてください</li>
+                  </ol>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- 大会情報の設定 -->
+            <div class="accordion-item mt-3">
+              <h2 class="accordion-header" id="headingConfig">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConfig" aria-expanded="false" aria-controls="collapseConfig">
+                  <strong>⚙️ 大会情報の設定</strong>
+                </button>
+              </h2>
+              <div id="collapseConfig" class="accordion-collapse collapse" aria-labelledby="headingConfig" data-bs-parent="#usageAccordion">
+                <div class="accordion-body">
+
+                  <p class="mb-3">操作パネルの初期値（大会名、チーム名など）は <code>init_data.json</code> ファイルで設定します。<br>
+                  自動生成ツール <code>npm run init</code> を使うと簡単に作成できます。</p>
+
+                  <!-- インタラクティブモード -->
+                  <h6 class="fw-bold mb-2">方法1: インタラクティブモード（推奨）</h6>
+                  <p class="mb-2">対話形式で質問に答えていくだけで設定ファイルを生成します:</p>
+                  <pre class="bg-light p-2 rounded"><code>npm run init</code></pre>
+
+                  <div class="alert alert-info mb-3" role="alert">
+                    <small>
+                      <strong>実行例:</strong><br>
+                      大会名を入力してください [現在: 大会名]: <strong>春季リーグ戦</strong><br>
+                      試合の最終イニングを入力してください [現在: 9]: <strong>9</strong><br>
+                      参加チーム名を入力してください [入力終了: enterのみ]:<br>
+                      &nbsp;&nbsp;チーム 1: <strong>東京D</strong><br>
+                      &nbsp;&nbsp;チーム 2: <strong>横浜S</strong><br>
+                      &nbsp;&nbsp;チーム 3: <strong>大阪T</strong><br>
+                      &nbsp;&nbsp;チーム 4: <em>(Enterで終了)</em>
+                    </small>
+                  </div>
+
+                  <!-- YAMLファイルモード -->
+                  <h6 class="fw-bold mb-2">方法2: YAMLファイルから生成</h6>
+                  <p class="mb-2">設定ファイル（YAML形式）を作成して生成します:</p>
+
+                  <p class="mb-1"><strong>ステップ1:</strong> サンプルファイルをコピー</p>
+                  <pre class="bg-light p-2 rounded"><code>cp config.yaml.example my-config.yaml</code></pre>
+
+                  <p class="mb-1 mt-2"><strong>ステップ2:</strong> ファイルを編集</p>
+                  <pre class="bg-light p-2 rounded"><code>game_title: 春季リーグ戦
+last_inning: 9
+team_names:
+  - 東京D
+  - 横浜S
+  - 大阪T</code></pre>
+
+                  <p class="mb-1 mt-2"><strong>ステップ3:</strong> 設定ファイルから生成</p>
+                  <pre class="bg-light p-2 rounded"><code>npm run init my-config.yaml</code></pre>
+
+                  <!-- コマンドライン引数モード -->
+                  <h6 class="fw-bold mb-2 mt-3">方法3: コマンドライン引数で直接指定</h6>
+                  <p class="mb-2">一行のコマンドですべての情報を指定します:</p>
+                  <pre class="bg-light p-2 rounded"><code>npm run init -- -t "春季リーグ戦" -i 9 --teams "東京D,横浜S,大阪T"</code></pre>
+
+                  <p class="text-muted small mb-3">
+                    オプション:
+                    <code>-t</code> 大会名、
+                    <code>-i</code> 最終イニング(1-9)、
+                    <code>--teams</code> 参加チーム(カンマ区切り)
+                  </p>
+
+                  <!-- 自動生成ルール -->
+                  <h6 class="fw-bold mb-2 mt-3">自動生成ルール</h6>
+                  <ul class="mb-3">
+                    <li><strong>先攻チーム:</strong> 参加チームの1番目</li>
+                    <li><strong>後攻チーム:</strong> 参加チームの2番目</li>
+                    <li><strong>イニング数:</strong> 1〜9回（試合前・試合終了を自動追加）</li>
+                    <li><strong>参加チーム:</strong> 最低2チーム必要</li>
+                  </ul>
+
+                  <!-- バックアップ -->
+                  <div class="alert alert-success mb-0" role="alert">
+                    <small>
+                      <strong>💡 安心のバックアップ機能</strong><br>
+                      既存の <code>init_data.json</code> がある場合、自動的に <code>init_data.json.bak</code> にバックアップされます。
+                    </small>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- カードセクション -->
       <div class="row justify-content-center g-4">
         <!-- 操作パネルカード -->
         <div class="col-auto">
-          <div class="card text-center">
+          <div class="card card-primary text-center">
             <div class="card-body">
+              <span class="card-icon">🎮</span>
               <h5 class="card-title">操作パネル</h5>
               <p class="card-text">試合のスコア、イニング、ランナー状況などをリアルタイムで更新します。</p>
-              <a href="/operation.html" class="btn btn-primary">操作パネルを開く</a>
+              <a href="/operation.html" class="btn btn-primary" target="_blank" rel="noopener noreferrer">操作パネルを開く</a>
             </div>
           </div>
         </div>
         <!-- 表示ボードカード -->
         <div class="col-auto">
-          <div class="card text-center">
+          <div class="card card-secondary text-center">
             <div class="card-body">
+              <span class="card-icon">📺</span>
               <h5 class="card-title">表示ボード</h5>
               <p class="card-text">OBS等の配信ソフトで取り込むためのスコアボード画面です。</p>
-              <a href="/board.html" class="btn btn-secondary">表示ボードを開く</a>
+              <a href="/board.html" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">表示ボードを開く</a>
             </div>
           </div>
         </div>
@@ -78,6 +431,9 @@
        </span>
     </div>
   </footer>
+
+  <!-- Bootstrap JavaScript Bundle -->
+  <script src="js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

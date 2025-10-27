@@ -38,5 +38,5 @@ memo*.txt
 GEMINI.md
 CLAUDE.md
 prompt*.txt
-init_data.json.bak
-my-config.yaml
+config/init_data.json.bak
+config/my-config.yaml

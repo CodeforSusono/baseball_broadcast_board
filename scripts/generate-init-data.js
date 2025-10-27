@@ -3,8 +3,8 @@ const path = require('path');
 const readline = require('readline');
 const yaml = require('js-yaml');
 
-const INIT_DATA_FILE = 'init_data.json';
-const BACKUP_FILE = 'init_data.json.bak';
+const INIT_DATA_FILE = 'config/init_data.json';
+const BACKUP_FILE = 'config/init_data.json.bak';
 
 // Validate team names
 function validateTeams(teams) {
@@ -127,13 +127,17 @@ async function interactiveMode() {
 
 // YAML file mode
 function yamlFileMode(filePath) {
-  if (!fs.existsSync(filePath)) {
-    console.error(`✗ エラー: ${filePath} が見つかりません`);
+  // Support both absolute paths and paths relative to config/
+  const configPath = filePath.startsWith('config/') ? filePath : `config/${filePath}`;
+  const finalPath = fs.existsSync(filePath) ? filePath : configPath;
+
+  if (!fs.existsSync(finalPath)) {
+    console.error(`✗ エラー: ${filePath} が見つかりません (${finalPath} も確認しました)`);
     process.exit(1);
   }
 
   try {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
+    const fileContents = fs.readFileSync(finalPath, 'utf8');
     const config = yaml.load(fileContents);
 
     if (!config.game_title) {

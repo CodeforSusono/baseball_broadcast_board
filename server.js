@@ -14,15 +14,27 @@ const logger = {
 };
 
 const server = http.createServer((req, res) => {
-  const publicDir = path.resolve("./");
+  const publicDir = path.resolve("./public");
   let requestedUrl = req.url;
   if (requestedUrl === "/") {
     requestedUrl = "/index.html";
   }
-  const intendedPath = path.join(publicDir, requestedUrl);
+
+  // Special handling for init_data.json - serve from config/
+  let intendedPath;
+  if (requestedUrl === "/init_data.json") {
+    intendedPath = path.resolve("./config/init_data.json");
+  } else {
+    intendedPath = path.join(publicDir, requestedUrl);
+  }
   const filePath = path.resolve(intendedPath);
 
-  if (!filePath.startsWith(publicDir)) {
+  // Security check: only allow files from public/ or config/init_data.json
+  const configDir = path.resolve("./config");
+  const isPublicFile = filePath.startsWith(publicDir);
+  const isConfigFile = filePath === path.resolve("./config/init_data.json");
+
+  if (!isPublicFile && !isConfigFile) {
       res.writeHead(403, { "Content-Type": "text/plain" });
       res.end("Forbidden");
       return;

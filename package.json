@@ -9,8 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "init": "node generate-init-data.js",
-    "build:deps": "node copy-deps.js",
+    "init": "node scripts/generate-init-data.js",
+    "build:deps": "node scripts/copy-deps.js",
     "postinstall": "npm run build:deps"
   },
   "dependencies": {

@@ -215,7 +215,7 @@ function showHelp() {
   -h, --help                このヘルプを表示
 
 例:
-  npm run init -- -t "春季リーグ戦" -i 9 --teams "東京,横浜,大阪"
+  npm run init -- -t "春季リーグ戦" -i 9 --teams "東京D,横浜S,大阪T"
   npm run init config.yaml
   npm run init
 
@@ -223,9 +223,9 @@ YAMLファイル形式:
   game_title: 春季リーグ戦
   last_inning: 9
   team_names:
-    - 東京ドラゴンズ
-    - 横浜スターズ
-    - 大阪タイガース
+    - 東京D
+    - 横浜S
+    - 大阪T
 `);
 }
 

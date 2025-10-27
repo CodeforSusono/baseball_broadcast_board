@@ -43,14 +43,19 @@ graph LR;
 ├── board.html              # OBS等で表示するスコアボード画面
 ├── init_data.json          # 大会名・チーム名の初期設定ファイル
 ├── generate-init-data.js   # init_data.json生成ツール
+├── copy-deps.js            # npm依存関係を静的ファイルディレクトリにコピーするスクリプト
 ├── config.yaml.example     # YAML設定ファイルのサンプル
 ├── server.js               # WebサーバーとWebSocketサーバー
 ├── package.json            # プロジェクト情報と依存ライブラリ
 ├── js/
 │   ├── Scoreboard.js       # Vue.jsのスコアボードコンポーネント
 │   ├── main.js             # 操作パネルのVue.jsアプリケーション
-│   └── board.js            # 表示ボードのVue.jsアプリケーション
-├── css/                    # スタイルシート
+│   ├── board.js            # 表示ボードのVue.jsアプリケーション
+│   ├── vue.global.js       # Vue.js (npm経由で自動生成)
+│   └── bootstrap.bundle.min.js  # Bootstrap JS (npm経由で自動生成)
+├── css/
+│   ├── main.css            # カスタムスタイル
+│   └── bootstrap.min.css   # Bootstrap CSS (npm経由で自動生成)
 └── doc/                    # ドキュメントや画像
 ```
 
@@ -75,6 +80,10 @@ graph LR;
     ```bash
     npm install
     ```
+
+    このコマンドにより、以下が自動的に実行されます:
+    - 必要なnpmパッケージ（Bootstrap、Vue.js、ws、js-yamlなど）のインストール
+    - `postinstall`フックによる依存ファイルの自動コピー（Bootstrap CSS/JS、Vue.jsを`css/`と`js/`ディレクトリへ）
 
 2.  **サーバーの起動**:
     サーバーは「開発モード」と「本番モード」の 2 つのモードで実行できます。
@@ -252,10 +261,47 @@ npm run init -- -t "夏季大会" -i 7 --teams "A,B,C,D,E"
 - `team_items`: チーム名選択プルダウンの選択肢（先頭は全角スペース）
 - `last_inning`: 最終イニング
 
+## 依存関係の管理
+
+このプロジェクトでは、Bootstrap と Vue.js を npm 経由で管理しています。
+
+### 依存ファイルの自動コピー
+
+`npm install` を実行すると、`postinstall` フックにより `copy-deps.js` スクリプトが自動実行され、以下のファイルが `node_modules/` から静的ファイルディレクトリにコピーされます:
+
+- `node_modules/bootstrap/dist/css/bootstrap.min.css` → `css/bootstrap.min.css`
+- `node_modules/bootstrap/dist/js/bootstrap.bundle.min.js` → `js/bootstrap.bundle.min.js`
+- `node_modules/vue/dist/vue.global.js` → `js/vue.global.js`
+
+### 手動での依存ファイル更新
+
+依存ファイルを手動で再コピーする場合は、以下のコマンドを実行します:
+
+```bash
+npm run build:deps
+```
+
+### 依存パッケージの更新
+
+Bootstrap や Vue.js のバージョンを更新する場合:
+
+1. `package.json` の依存バージョンを更新
+2. `npm install` を実行（自動的に `copy-deps.js` が実行されます）
+
+または、特定のパッケージを直接更新:
+
+```bash
+npm update bootstrap vue
+```
+
 ## 利用しているオープンソースソフトウェア
 
-- [Vue.js (v3.1.5)](https://github.com/vuejs/core/releases/tag/v3.1.5) - [MIT License](https://github.com/vuejs/core/blob/v3.1.5/LICENSE)
-- [Bootstrap (v5.0.2)](https://github.com/twbs/bootstrap/releases/tag/v5.0.2) - [MIT License](https://github.com/twbs/bootstrap/blob/v5.0.2/LICENSE)
-- [ws (v8.13.0)](https://github.com/websockets/ws) - [MIT License](https://github.com/websockets/ws/blob/master/LICENSE)
-- [js-yaml (v4.1.0)](https://github.com/nodeca/js-yaml) - [MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
+このプロジェクトは以下のオープンソースソフトウェアを使用しています（すべてMITライセンス）:
+
+- [Vue.js](https://github.com/vuejs/core) (v3.4.0+) - [MIT License](https://github.com/vuejs/core/blob/main/LICENSE)
+- [Bootstrap](https://github.com/twbs/bootstrap) (v5.3.3+) - [MIT License](https://github.com/twbs/bootstrap/blob/main/LICENSE)
+- [ws](https://github.com/websockets/ws) (v8.13.0+) - [MIT License](https://github.com/websockets/ws/blob/master/LICENSE)
+- [js-yaml](https://github.com/nodeca/js-yaml) (v4.1.0+) - [MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
+
+実際にインストールされるバージョンは `package-lock.json` をご確認ください。
 

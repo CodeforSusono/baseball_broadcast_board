@@ -9,10 +9,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "init": "node generate-init-data.js"
+    "init": "node generate-init-data.js",
+    "build:deps": "node copy-deps.js",
+    "postinstall": "npm run build:deps"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "js-yaml": "^4.1.0",
+    "vue": "^3.4.0",
     "ws": "^8.13.0"
   },
   "keywords": [],

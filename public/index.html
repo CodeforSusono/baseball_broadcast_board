@@ -318,7 +318,7 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
               <div id="collapseConfig" class="accordion-collapse collapse" aria-labelledby="headingConfig" data-bs-parent="#usageAccordion">
                 <div class="accordion-body">
 
-                  <p class="mb-3">操作パネルの初期値（大会名、チーム名など）は <code>init_data.json</code> ファイルで設定します。<br>
+                  <p class="mb-3">操作パネルの初期値（大会名、チーム名など）は <code>config/init_data.json</code> ファイルで設定します。<br>
                   自動生成ツール <code>npm run init</code> を使うと簡単に作成できます。</p>
 
                   <!-- インタラクティブモード -->
@@ -344,7 +344,7 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
                   <p class="mb-2">設定ファイル（YAML形式）を作成して生成します:</p>
 
                   <p class="mb-1"><strong>ステップ1:</strong> サンプルファイルをコピー</p>
-                  <pre class="bg-light p-2 rounded"><code>cp config.yaml.example my-config.yaml</code></pre>
+                  <pre class="bg-light p-2 rounded"><code>cp config/config.yaml.example config/my-config.yaml</code></pre>
 
                   <p class="mb-1 mt-2"><strong>ステップ2:</strong> ファイルを編集</p>
                   <pre class="bg-light p-2 rounded"><code>game_title: 春季リーグ戦
@@ -355,7 +355,7 @@ team_names:
   - 大阪T</code></pre>
 
                   <p class="mb-1 mt-2"><strong>ステップ3:</strong> 設定ファイルから生成</p>
-                  <pre class="bg-light p-2 rounded"><code>npm run init my-config.yaml</code></pre>
+                  <pre class="bg-light p-2 rounded"><code>npm run init config/my-config.yaml</code></pre>
 
                   <!-- コマンドライン引数モード -->
                   <h6 class="fw-bold mb-2 mt-3">方法3: コマンドライン引数で直接指定</h6>
@@ -382,7 +382,7 @@ team_names:
                   <div class="alert alert-success mb-0" role="alert">
                     <small>
                       <strong>💡 安心のバックアップ機能</strong><br>
-                      既存の <code>init_data.json</code> がある場合、自動的に <code>init_data.json.bak</code> にバックアップされます。
+                      既存の <code>config/init_data.json</code> がある場合、自動的に <code>config/init_data.json.bak</code> にバックアップされます。
                     </small>
                   </div>
 

@@ -38,24 +38,28 @@ graph LR;
 
 ```
 .
-├── index.html              # トップページ（メニュー）
-├── operation.html          # 操作パネルのUI
-├── board.html              # OBS等で表示するスコアボード画面
-├── init_data.json          # 大会名・チーム名の初期設定ファイル
-├── generate-init-data.js   # init_data.json生成ツール
-├── copy-deps.js            # npm依存関係を静的ファイルディレクトリにコピーするスクリプト
-├── config.yaml.example     # YAML設定ファイルのサンプル
+├── public/                 # 静的ファイル（Webサーバーが配信）
+│   ├── index.html          # トップページ（メニュー）
+│   ├── operation.html      # 操作パネルのUI
+│   ├── board.html          # OBS等で表示するスコアボード画面
+│   ├── css/
+│   │   ├── main.css        # カスタムスタイル
+│   │   └── bootstrap.min.css   # Bootstrap CSS (npm経由で自動生成)
+│   ├── js/
+│   │   ├── Scoreboard.js   # Vue.jsのスコアボードコンポーネント
+│   │   ├── main.js         # 操作パネルのVue.jsアプリケーション
+│   │   ├── board.js        # 表示ボードのVue.jsアプリケーション
+│   │   ├── vue.global.js   # Vue.js (npm経由で自動生成)
+│   │   └── bootstrap.bundle.min.js  # Bootstrap JS (npm経由で自動生成)
+│   └── img/                # 画像ファイル
+├── scripts/                # ビルド・ユーティリティスクリプト
+│   ├── copy-deps.js        # npm依存関係をpublic/にコピーするスクリプト
+│   └── generate-init-data.js  # init_data.json生成ツール
+├── config/                 # 設定ファイル
+│   ├── init_data.json      # 大会名・チーム名の初期設定ファイル
+│   └── config.yaml.example # YAML設定ファイルのサンプル
 ├── server.js               # WebサーバーとWebSocketサーバー
 ├── package.json            # プロジェクト情報と依存ライブラリ
-├── js/
-│   ├── Scoreboard.js       # Vue.jsのスコアボードコンポーネント
-│   ├── main.js             # 操作パネルのVue.jsアプリケーション
-│   ├── board.js            # 表示ボードのVue.jsアプリケーション
-│   ├── vue.global.js       # Vue.js (npm経由で自動生成)
-│   └── bootstrap.bundle.min.js  # Bootstrap JS (npm経由で自動生成)
-├── css/
-│   ├── main.css            # カスタムスタイル
-│   └── bootstrap.min.css   # Bootstrap CSS (npm経由で自動生成)
 └── doc/                    # ドキュメントや画像
 ```
 
@@ -150,7 +154,7 @@ WebSocket接続は、アクセスしたURLのホスト名を自動的に使用�
 
 ## 初期設定ファイルの生成
 
-操作パネルを開いた際の初期値は `init_data.json` ファイルで設定します。このファイルは **自動生成ツール** を使って簡単に作成できます。
+操作パネルを開いた際の初期値は `config/init_data.json` ファイルで設定します。このファイルは **自動生成ツール** を使って簡単に作成できます。
 
 ### 自動生成ツールの使い方
 
@@ -186,16 +190,16 @@ YAMLファイルを用意して生成します:
 
 ```bash
 # サンプルファイルをコピー
-cp config.yaml.example my-config.yaml
+cp config/config.yaml.example config/my-config.yaml
 
 # 編集
-nano my-config.yaml
+nano config/my-config.yaml
 
 # 生成
-npm run init my-config.yaml
+npm run init config/my-config.yaml
 ```
 
-YAMLファイルの例（`my-config.yaml`）:
+YAMLファイルの例（`config/my-config.yaml`）:
 ```yaml
 game_title: 夏季大会
 last_inning: 7
@@ -235,7 +239,7 @@ npm run init -- -t "夏季大会" -i 7 --teams "A,B,C,D,E"
 
 ### バックアップ機能
 
-既存の `init_data.json` がある場合、自動的に `init_data.json.bak` にバックアップされます。
+既存の `config/init_data.json` がある場合、自動的に `config/init_data.json.bak` にバックアップされます。
 
 ### 生成される init_data.json の例
 
@@ -252,7 +256,7 @@ npm run init -- -t "夏季大会" -i 7 --teams "A,B,C,D,E"
 
 ### 手動編集
 
-もちろん、`init_data.json` を直接編集することも可能です。
+もちろん、`config/init_data.json` を直接編集することも可能です。
 
 - `game_title`: 大会名
 - `team_top`: 先攻チーム
@@ -267,11 +271,11 @@ npm run init -- -t "夏季大会" -i 7 --teams "A,B,C,D,E"
 
 ### 依存ファイルの自動コピー
 
-`npm install` を実行すると、`postinstall` フックにより `copy-deps.js` スクリプトが自動実行され、以下のファイルが `node_modules/` から静的ファイルディレクトリにコピーされます:
+`npm install` を実行すると、`postinstall` フックにより `scripts/copy-deps.js` スクリプトが自動実行され、以下のファイルが `node_modules/` から静的ファイルディレクトリにコピーされます:
 
-- `node_modules/bootstrap/dist/css/bootstrap.min.css` → `css/bootstrap.min.css`
-- `node_modules/bootstrap/dist/js/bootstrap.bundle.min.js` → `js/bootstrap.bundle.min.js`
-- `node_modules/vue/dist/vue.global.js` → `js/vue.global.js`
+- `node_modules/bootstrap/dist/css/bootstrap.min.css` → `public/css/bootstrap.min.css`
+- `node_modules/bootstrap/dist/js/bootstrap.bundle.min.js` → `public/js/bootstrap.bundle.min.js`
+- `node_modules/vue/dist/vue.global.js` → `public/js/vue.global.js`
 
 ### 手動での依存ファイル更新
 

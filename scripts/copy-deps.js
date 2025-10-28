@@ -13,21 +13,21 @@ const filesToCopy = [
   // Bootstrap CSS
   {
     src: 'node_modules/bootstrap/dist/css/bootstrap.min.css',
-    dest: 'css/bootstrap.min.css'
+    dest: 'public/css/bootstrap.min.css'
   },
   {
     src: 'node_modules/bootstrap/dist/css/bootstrap.min.css.map',
-    dest: 'css/bootstrap.min.css.map'
+    dest: 'public/css/bootstrap.min.css.map'
   },
   // Bootstrap JavaScript
   {
     src: 'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
-    dest: 'js/bootstrap.bundle.min.js'
+    dest: 'public/js/bootstrap.bundle.min.js'
   },
   // Vue.js
   {
     src: 'node_modules/vue/dist/vue.global.js',
-    dest: 'js/vue.global.js'
+    dest: 'public/js/vue.global.js'
   }
 ];
 

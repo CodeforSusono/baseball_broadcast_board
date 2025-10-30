@@ -390,6 +390,99 @@ team_names:
               </div>
             </div>
 
+            <!-- 試合中の操作方法 -->
+            <div class="accordion-item mt-3">
+              <h2 class="accordion-header" id="headingOperation">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOperation" aria-expanded="false" aria-controls="collapseOperation">
+                  <strong>⚾ 試合中の操作方法</strong>
+                </button>
+              </h2>
+              <div id="collapseOperation" class="accordion-collapse collapse" aria-labelledby="headingOperation" data-bs-parent="#usageAccordion">
+                <div class="accordion-body">
+
+                  <!-- 試合準備 -->
+                  <h6 class="fw-bold mb-2">試合準備</h6>
+
+                  <p class="mb-2"><strong>1. 基本情報の設定</strong></p>
+                  <ul class="mb-3">
+                    <li>タイトル欄に大会名を入力する。</li>
+                    <li>先攻チーム・後攻チームをプルダウンから選択する。</li>
+                    <li>表示ボードに上記結果が反映されていることを確認する。</li>
+                  </ul>
+
+                  <!-- 試合開始 -->
+                  <h6 class="fw-bold mb-2 mt-4">試合開始</h6>
+
+                  <p class="mb-2"><strong>1. イニングの進行</strong></p>
+                  <ul class="mb-3">
+                    <li>攻守交代・出塁カードの <strong>「進む」</strong> を押す。</li>
+                    <li>イニング表示が <strong>「１回オモテ」</strong> になったことを確認する。</li>
+                    <li>その後は3アウトの度に <strong>「進む」</strong> を押し、「１回ウラ」→「２回オモテ」…「試合終了」となる。</li>
+                    <li>もし、間違えてイニングを進めた場合、<strong>「戻る」</strong> を押して修正する。</li>
+                  </ul>
+
+                  <p class="mb-2"><strong>2. ピッチャーが投球した際の操作</strong></p>
+
+                  <div class="alert alert-info mb-2" role="alert">
+                    <small><strong>ストライクの場合</strong></small>
+                  </div>
+                  <ul class="mb-3">
+                    <li>Sの下の <strong>「＋」</strong> を押す。</li>
+                    <li>3振なら、<strong>「BSリセット」</strong> を押し、Oの下の <strong>「＋」</strong> を押す。</li>
+                  </ul>
+
+                  <div class="alert alert-info mb-2" role="alert">
+                    <small><strong>ボールの場合</strong></small>
+                  </div>
+                  <ul class="mb-3">
+                    <li>Bの下の <strong>「＋」</strong> を押す。</li>
+                    <li>フォアボールになったら、<strong>「BSリセット」</strong> を押し、攻守交代・出塁カード下段の <strong>「1B」「2B」「3B」</strong> を押す。</li>
+                    <li>その際、既に出塁者がいた場合は、その出塁者も合わせて <strong>「1B」「2B」「3B」</strong> を押す。</li>
+                  </ul>
+
+                  <div class="alert alert-info mb-2" role="alert">
+                    <small><strong>ヒットの場合</strong></small>
+                  </div>
+                  <ul class="mb-3">
+                    <li><strong>「BSリセット」</strong> を押し、出塁先に合わせて攻守交代・出塁カード下段の <strong>「1B」「2B」「3B」</strong> を押す。</li>
+                    <li>その際、既に出塁者がいた場合は、その出塁者も合わせて <strong>「1B」「2B」「3B」</strong> を押す。</li>
+                  </ul>
+
+                  <div class="alert alert-success mb-2" role="alert">
+                    <small><strong>得点が入った場合</strong></small>
+                  </div>
+                  <ul class="mb-3">
+                    <li>スコアカードの当該チームの <strong>「＋」</strong> を押し、得点を入れる。</li>
+                    <li>もし、得点を間違えた場合、<strong>「−」</strong> を押して修正する。</li>
+                  </ul>
+
+                  <div class="alert alert-warning mb-2" role="alert">
+                    <small><strong>ファールの場合</strong></small>
+                  </div>
+                  <ul class="mb-3">
+                    <li>ストライク数に合わせて、Sの下の <strong>「＋」</strong> を押す。</li>
+                  </ul>
+
+                  <div class="alert alert-danger mb-2" role="alert">
+                    <small><strong>アウトの場合</strong></small>
+                  </div>
+                  <ul class="mb-3">
+                    <li>Oの下の <strong>「＋」</strong> を押す。</li>
+                    <li>もし、アウト数を間違えた場合、<strong>「−」</strong> を押して修正する。</li>
+                  </ul>
+
+                  <div class="alert alert-primary mb-0" role="alert">
+                    <small>
+                      <strong>💡 攻守交代のタイミング</strong><br>
+                      3アウトになったら、攻守交代・出塁カードの <strong>「進む」</strong> を押す。<br>
+                      その結果、BSOカウント・出塁者がリセットされ、攻守が交代となる。
+                    </small>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

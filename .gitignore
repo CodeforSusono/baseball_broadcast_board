@@ -18,6 +18,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/logs/*.log
+.pm2
 
 # Editor directories and files
 .vscode

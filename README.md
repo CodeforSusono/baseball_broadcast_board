@@ -61,6 +61,10 @@ graph LR;
 │   └── config.yaml.example # YAML設定ファイルのサンプル
 ├── data/                   # 実行時データ
 │   └── current_game.json   # 試合状況の保存ファイル（自動生成）
+├── logs/                   # ログファイル
+│   ├── pm2-error.log       # PM2エラーログ（自動生成）
+│   └── pm2-out.log         # PM2標準出力ログ（自動生成）
+├── ecosystem.config.js     # PM2設定ファイル
 ├── server.js               # WebサーバーとWebSocketサーバー
 ├── package.json            # プロジェクト情報と依存ライブラリ
 └── doc/                    # ドキュメントや画像
@@ -350,6 +354,142 @@ node server.js
 ```
 
 操作パネルを開くと `config/init_data.json` の初期値から開始されます。
+
+## PM2を使った本番運用
+
+本番環境では、PM2（Process Manager 2）を使用してサーバーを管理することを推奨します。PM2により、自動再起動、ログ管理、モニタリングなどの機能が利用できます。
+
+### PM2のインストール
+
+**グローバルインストール（本番環境）:**
+```bash
+npm install -g pm2
+```
+
+プロジェクトには既に開発依存関係として含まれています（`npm install` で自動的にインストールされます）。
+
+### 基本的な使い方
+
+#### サーバーの起動
+
+**本番モードで起動:**
+```bash
+npm run pm2:start
+```
+
+**開発モードで起動:**
+```bash
+npm run pm2:dev
+```
+
+#### サーバーの操作
+
+```bash
+# ステータス確認
+npm run pm2:status
+
+# ログをリアルタイム表示
+npm run pm2:logs
+
+# サーバーの停止
+npm run pm2:stop
+
+# サーバーの再起動（ダウンタイムあり）
+npm run pm2:restart
+
+# サーバーのリロード（ゼロダウンタイム）
+npm run pm2:reload
+
+# PM2からアプリを削除
+npm run pm2:delete
+
+# リアルタイムモニタリング
+npm run pm2:monit
+```
+
+### OS起動時の自動起動設定
+
+サーバー再起動後も自動的にアプリケーションを起動する設定：
+
+```bash
+# 1. PM2のスタートアップスクリプトを生成
+pm2 startup
+
+# 表示されたコマンドを実行（sudoが必要な場合があります）
+# 例: sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u youruser --hp /home/youruser
+
+# 2. 現在の状態を保存
+pm2 save
+```
+
+これにより、サーバーを再起動してもアプリケーションが自動的に起動します。
+
+### ログの確認
+
+PM2はログを自動的にファイルに保存します：
+
+```bash
+# ログファイルの場所
+logs/pm2-out.log    # 標準出力
+logs/pm2-error.log  # エラー出力
+
+# ログをリアルタイムで確認
+npm run pm2:logs
+
+# ログファイルを直接確認
+tail -f logs/pm2-out.log
+tail -f logs/pm2-error.log
+```
+
+### モニタリング
+
+```bash
+# リアルタイムモニタリング画面
+npm run pm2:monit
+
+# ステータス一覧
+npm run pm2:status
+```
+
+モニタリング画面では、以下の情報が確認できます：
+- CPU使用率
+- メモリ使用量
+- 稼働時間
+- 再起動回数
+
+### PM2設定のカスタマイズ
+
+`ecosystem.config.js` で詳細な設定を変更できます：
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'baseball-board',
+    script: './server.js',
+    instances: 1,              // プロセス数
+    autorestart: true,         // 自動再起動
+    max_memory_restart: '500M' // メモリ制限
+    // その他の設定...
+  }]
+};
+```
+
+### トラブルシューティング
+
+**プロセスが起動しない場合:**
+```bash
+# ログを確認
+npm run pm2:logs
+
+# PM2を完全にリセット
+npm run pm2:delete
+pm2 kill
+npm run pm2:start
+```
+
+**メモリ使用量が多い場合:**
+- `ecosystem.config.js` の `max_memory_restart` を調整
+- PM2が自動的に再起動してメモリをクリア
 
 ## 利用しているオープンソースソフトウェア
 

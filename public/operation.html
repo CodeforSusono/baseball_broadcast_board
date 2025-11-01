@@ -153,6 +153,23 @@
       .position-relative.mx-auto {
         margin-bottom: 0 !important;
       }
+
+      /* Connection Status Indicator */
+      .connection-status {
+        display: flex;
+        align-items: center;
+      }
+
+      .connection-status .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        font-weight: 500;
+      }
+
+      /* Game Reset Card */
+      .card-header.bg-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+      }
     </style>
   </head>
   <body>
@@ -160,6 +177,21 @@
       <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
           <span class="navbar-brand mb-0 h1">⚾ 野球スコアボード - 操作パネル</span>
+          <!-- Connection Status Indicator -->
+          <div class="connection-status">
+            <span v-if="connectionStatus === 'connected'" class="badge bg-success">
+              🟢 接続中
+            </span>
+            <span v-else-if="connectionStatus === 'reconnecting'" class="badge bg-warning text-dark">
+              🟡 再接続中... ({{ reconnectAttempts }}/{{ maxReconnectAttempts }})
+            </span>
+            <span v-else-if="connectionStatus === 'disconnected'" class="badge bg-danger">
+              🔴 切断 (再接続失敗)
+            </span>
+            <span v-else class="badge bg-secondary">
+              ⚪ 接続中...
+            </span>
+          </div>
         </div>
       </nav>
 
@@ -200,12 +232,18 @@
                     </select>
                   </div>
                 </div>
-                <div class="row">
+                <div class="mb-3 row">
                   <label for="teamBottomName" class="col-sm-3 col-form-label">後攻チーム</label>
                   <div class="col-sm-5">
                     <select class="form-select" v-model="team_bottom" id="teamBottomName">
                       <option v-for="team in team_items" :value="team">{{ team }}</option>
                     </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <label class="col-sm-3 col-form-label">最大イニング数</label>
+                  <div class="col-sm-9">
+                    <p class="form-control-plaintext">{{ last_inning }} 回</p>
                   </div>
                 </div>
               </div>
@@ -264,11 +302,15 @@
                   <button class="btn btn-outline-secondary" @click="gameForward">進む &raquo;</button>
                 </div>
                 <!-- ランナー -->
-                <div class="position-relative mx-auto" style="width: 150px; height: 100px;">
+                <div class="position-relative mx-auto mb-4" style="width: 150px; height: 100px;">
                   <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']">2B</button>
                   <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']">3B</button>
                   <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']">1B</button>
                 </div>
+                <!-- 試合初期化ボタン -->
+                <button class="btn btn-danger" @click="resetGame">
+                  🔄 試合初期化
+                </button>
               </div>
             </div>
 

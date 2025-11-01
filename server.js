@@ -13,6 +13,48 @@ const logger = {
   }
 };
 
+// Game state management
+const GAME_STATE_FILE = path.resolve("./data/current_game.json");
+let currentGameState = null;
+
+/**
+ * Load game state from file
+ * @returns {object|null} The loaded game state or null if not available
+ */
+function loadGameState() {
+  try {
+    if (fs.existsSync(GAME_STATE_FILE)) {
+      const data = fs.readFileSync(GAME_STATE_FILE, 'utf8');
+      const state = JSON.parse(data);
+      logger.log("Game state loaded from file");
+      return state;
+    }
+  } catch (error) {
+    console.error("Error loading game state:", error.message);
+  }
+  return null;
+}
+
+/**
+ * Save game state to file
+ * @param {object} state - The game state to save
+ */
+function saveGameState(state) {
+  try {
+    const dataDir = path.dirname(GAME_STATE_FILE);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(GAME_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+    logger.log("Game state saved to file");
+  } catch (error) {
+    console.error("Error saving game state:", error.message);
+  }
+}
+
+// Load game state on server startup
+currentGameState = loadGameState();
+
 const server = http.createServer((req, res) => {
   const publicDir = path.resolve("./public");
   let requestedUrl = req.url;
@@ -71,8 +113,25 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocket.Server({ server });
 wss.on("connection", (ws) => {
   logger.log("Client connected");
+
+  // Send current game state to newly connected client
+  if (currentGameState) {
+    ws.send(JSON.stringify(currentGameState));
+    logger.log("Sent current game state to new client");
+  }
+
   ws.on("message", (message) => {
     logger.log("Received: %s", message);
+
+    // Update and save current game state
+    try {
+      currentGameState = JSON.parse(message.toString());
+      saveGameState(currentGameState);
+    } catch (error) {
+      console.error("Error parsing game state:", error.message);
+    }
+
+    // Broadcast to all other connected clients
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message.toString());

@@ -11,7 +11,16 @@
     "start": "node server.js",
     "init": "node scripts/generate-init-data.js",
     "build:deps": "node scripts/copy-deps.js",
-    "postinstall": "npm run build:deps"
+    "postinstall": "npm run build:deps",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:dev": "pm2 start ecosystem.config.js --env development",
+    "pm2:stop": "pm2 stop baseball-board",
+    "pm2:restart": "pm2 restart baseball-board",
+    "pm2:reload": "pm2 reload baseball-board",
+    "pm2:delete": "pm2 delete baseball-board",
+    "pm2:logs": "pm2 logs baseball-board",
+    "pm2:monit": "pm2 monit",
+    "pm2:status": "pm2 status"
   },
   "dependencies": {
     "bootstrap": "^5.3.3",
@@ -21,5 +30,8 @@
   },
   "keywords": [],
   "author": "Akira Tanaka",
-  "license": ""
+  "license": "",
+  "devDependencies": {
+    "pm2": "^6.0.13"
+  }
 }

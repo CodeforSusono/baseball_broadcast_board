@@ -227,12 +227,18 @@
                     </select>
                   </div>
                 </div>
-                <div class="row">
+                <div class="mb-3 row">
                   <label for="teamBottomName" class="col-sm-3 col-form-label">後攻チーム</label>
                   <div class="col-sm-5">
                     <select class="form-select" v-model="team_bottom" id="teamBottomName">
                       <option v-for="team in team_items" :value="team">{{ team }}</option>
                     </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <label class="col-sm-3 col-form-label">最大イニング数</label>
+                  <div class="col-sm-9">
+                    <p class="form-control-plaintext">{{ last_inning }} 回</p>
                   </div>
                 </div>
               </div>

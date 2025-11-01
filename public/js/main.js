@@ -315,6 +315,25 @@ const app = Vue.createApp({
         this.score_bottom--;
       }
     },
+    resetGame: function () {
+      // Confirmation dialog with extra warning if game is in progress
+      let confirmMessage = '試合を初期化してよろしいですか？\n\nイニング、得点、BSO、ランナーがすべてリセットされます。';
+
+      if (this.game_inning >= 1 && this.game_inning <= this.last_inning) {
+        confirmMessage = '⚠️ 試合中ですが、本当に初期化しますか？\n\nイニング、得点、BSO、ランナーがすべてリセットされます。';
+      }
+
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      // Reset game state to initial values
+      this.game_inning = 0;      // Before game starts
+      this.top = true;            // Top of inning (offensive team)
+      this.score_top = 0;         // Reset top team score
+      this.score_bottom = 0;      // Reset bottom team score
+      this.initParams();          // Reset BSO and runners
+    },
   },
 });
 app.component("scoreboard", scoreboardComponent);

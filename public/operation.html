@@ -165,6 +165,11 @@
         padding: 0.5rem 0.75rem;
         font-weight: 500;
       }
+
+      /* Game Reset Card */
+      .card-header.bg-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+      }
     </style>
   </head>
   <body>
@@ -297,11 +302,15 @@
                   <button class="btn btn-outline-secondary" @click="gameForward">進む &raquo;</button>
                 </div>
                 <!-- ランナー -->
-                <div class="position-relative mx-auto" style="width: 150px; height: 100px;">
+                <div class="position-relative mx-auto mb-4" style="width: 150px; height: 100px;">
                   <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']">2B</button>
                   <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']">3B</button>
                   <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']">1B</button>
                 </div>
+                <!-- 試合初期化ボタン -->
+                <button class="btn btn-danger" @click="resetGame">
+                  🔄 試合初期化
+                </button>
               </div>
             </div>
 

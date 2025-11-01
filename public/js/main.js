@@ -20,50 +20,16 @@ const app = Vue.createApp({
     team_items: [],
     socket: null,
     restoredFromServer: false,
+    // WebSocket reconnection
+    connectionStatus: 'connecting',
+    reconnectAttempts: 0,
+    maxReconnectAttempts: 10,
+    reconnectDelay: 1000,
+    reconnectTimer: null,
   }),
   created() {
-    // Dynamically generate WebSocket URL based on current page location
-    // This allows access from different PCs (localhost, LAN IP, domain name)
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = window.location.host; // includes hostname and port
-    this.socket = new WebSocket(`${wsProtocol}//${wsHost}`);
-
-    this.socket.onopen = () => {
-      console.log("WebSocket connection established for control panel.");
-      // Wait for server to send saved state before sending current state
-    };
-
-    // Receive saved game state from server
-    this.socket.onmessage = (event) => {
-      try {
-        const savedState = JSON.parse(event.data);
-        console.log("Received saved game state from server");
-
-        // Restore game state (but not UI configuration like game_array and team_items)
-        this.game_title = savedState.game_title || this.game_title;
-        this.team_top = savedState.team_top || this.team_top;
-        this.team_bottom = savedState.team_bottom || this.team_bottom;
-        this.game_inning = savedState.game_inning || 0;
-        this.last_inning = savedState.last_inning || 9;
-        this.top = savedState.top || false;
-        this.first_base = savedState.first_base || false;
-        this.second_base = savedState.second_base || false;
-        this.third_base = savedState.third_base || false;
-        this.ball_cnt = savedState.ball_cnt || 0;
-        this.strike_cnt = savedState.strike_cnt || 0;
-        this.out_cnt = savedState.out_cnt || 0;
-        this.score_top = savedState.score_top || 0;
-        this.score_bottom = savedState.score_bottom || 0;
-
-        this.restoredFromServer = true;
-      } catch (error) {
-        console.error("Error parsing saved game state:", error);
-      }
-    };
-
-    this.socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+    // Initialize WebSocket connection
+    this.connectWebSocket();
 
     // Load configuration from init_data.json
     fetch("/init_data.json")
@@ -83,6 +49,13 @@ const app = Vue.createApp({
           }
         }
       });
+  },
+  beforeUnmount() {
+    // Clean up WebSocket and timers
+    this.cancelReconnect();
+    if (this.socket) {
+      this.socket.close();
+    }
   },
   watch: {
     // 監視するデータをまとめて指定
@@ -115,6 +88,103 @@ const app = Vue.createApp({
     },
   },
   methods: {
+    // WebSocket connection management
+    connectWebSocket() {
+      // Dynamically generate WebSocket URL based on current page location
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.host;
+
+      try {
+        this.socket = new WebSocket(`${wsProtocol}//${wsHost}`);
+
+        this.socket.onopen = () => this.handleWebSocketOpen();
+        this.socket.onmessage = (event) => this.handleWebSocketMessage(event);
+        this.socket.onerror = (error) => this.handleWebSocketError(error);
+        this.socket.onclose = () => this.handleWebSocketClose();
+      } catch (error) {
+        console.error("Failed to create WebSocket:", error);
+        this.scheduleReconnect();
+      }
+    },
+
+    handleWebSocketOpen() {
+      console.log("WebSocket connection established for control panel.");
+      this.connectionStatus = 'connected';
+      this.reconnectAttempts = 0;
+    },
+
+    handleWebSocketMessage(event) {
+      try {
+        const savedState = JSON.parse(event.data);
+        console.log("Received saved game state from server");
+
+        // Restore game state (but not UI configuration like game_array and team_items)
+        this.game_title = savedState.game_title || this.game_title;
+        this.team_top = savedState.team_top || this.team_top;
+        this.team_bottom = savedState.team_bottom || this.team_bottom;
+        this.game_inning = savedState.game_inning || 0;
+        this.last_inning = savedState.last_inning || 9;
+        this.top = savedState.top || false;
+        this.first_base = savedState.first_base || false;
+        this.second_base = savedState.second_base || false;
+        this.third_base = savedState.third_base || false;
+        this.ball_cnt = savedState.ball_cnt || 0;
+        this.strike_cnt = savedState.strike_cnt || 0;
+        this.out_cnt = savedState.out_cnt || 0;
+        this.score_top = savedState.score_top || 0;
+        this.score_bottom = savedState.score_bottom || 0;
+
+        this.restoredFromServer = true;
+      } catch (error) {
+        console.error("Error parsing saved game state:", error);
+      }
+    },
+
+    handleWebSocketError(error) {
+      console.error("WebSocket error:", error);
+    },
+
+    handleWebSocketClose() {
+      console.log("WebSocket connection closed");
+
+      if (this.connectionStatus !== 'disconnected') {
+        this.connectionStatus = 'reconnecting';
+        this.scheduleReconnect();
+      }
+    },
+
+    scheduleReconnect() {
+      // Clear any existing reconnect timer
+      this.cancelReconnect();
+
+      if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+        console.error("Max reconnection attempts reached");
+        this.connectionStatus = 'disconnected';
+        return;
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
+        30000 // Max 30 seconds
+      );
+
+      console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectAttempts++;
+        this.connectWebSocket();
+      }, delay);
+    },
+
+    cancelReconnect() {
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
+    },
+
+    // Game board update
     updateBoard() {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(JSON.stringify(this.boardData));

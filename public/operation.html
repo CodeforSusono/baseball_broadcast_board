@@ -153,6 +153,18 @@
       .position-relative.mx-auto {
         margin-bottom: 0 !important;
       }
+
+      /* Connection Status Indicator */
+      .connection-status {
+        display: flex;
+        align-items: center;
+      }
+
+      .connection-status .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        font-weight: 500;
+      }
     </style>
   </head>
   <body>
@@ -160,6 +172,21 @@
       <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
           <span class="navbar-brand mb-0 h1">⚾ 野球スコアボード - 操作パネル</span>
+          <!-- Connection Status Indicator -->
+          <div class="connection-status">
+            <span v-if="connectionStatus === 'connected'" class="badge bg-success">
+              🟢 接続中
+            </span>
+            <span v-else-if="connectionStatus === 'reconnecting'" class="badge bg-warning text-dark">
+              🟡 再接続中... ({{ reconnectAttempts }}/{{ maxReconnectAttempts }})
+            </span>
+            <span v-else-if="connectionStatus === 'disconnected'" class="badge bg-danger">
+              🔴 切断 (再接続失敗)
+            </span>
+            <span v-else class="badge bg-secondary">
+              ⚪ 接続中...
+            </span>
+          </div>
         </div>
       </nav>
 

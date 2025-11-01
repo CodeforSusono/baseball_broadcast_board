@@ -19,6 +19,7 @@ const app = Vue.createApp({
     game_array: [],
     team_items: [],
     socket: null,
+    restoredFromServer: false,
   }),
   created() {
     // Dynamically generate WebSocket URL based on current page location
@@ -29,30 +30,59 @@ const app = Vue.createApp({
 
     this.socket.onopen = () => {
       console.log("WebSocket connection established for control panel.");
-      // 接続時に現在のデータを送信
-      this.updateBoard();
+      // Wait for server to send saved state before sending current state
+    };
+
+    // Receive saved game state from server
+    this.socket.onmessage = (event) => {
+      try {
+        const savedState = JSON.parse(event.data);
+        console.log("Received saved game state from server");
+
+        // Restore game state (but not UI configuration like game_array and team_items)
+        this.game_title = savedState.game_title || this.game_title;
+        this.team_top = savedState.team_top || this.team_top;
+        this.team_bottom = savedState.team_bottom || this.team_bottom;
+        this.game_inning = savedState.game_inning || 0;
+        this.last_inning = savedState.last_inning || 9;
+        this.top = savedState.top || false;
+        this.first_base = savedState.first_base || false;
+        this.second_base = savedState.second_base || false;
+        this.third_base = savedState.third_base || false;
+        this.ball_cnt = savedState.ball_cnt || 0;
+        this.strike_cnt = savedState.strike_cnt || 0;
+        this.out_cnt = savedState.out_cnt || 0;
+        this.score_top = savedState.score_top || 0;
+        this.score_bottom = savedState.score_bottom || 0;
+
+        this.restoredFromServer = true;
+      } catch (error) {
+        console.error("Error parsing saved game state:", error);
+      }
     };
 
     this.socket.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
 
+    // Load configuration from init_data.json
     fetch("/init_data.json")
       .then((response) => response.json())
       .then((data) => {
-        this.game_title = data.game_title;
-        this.team_top = data.team_top;
-        this.team_bottom = data.team_bottom;
+        // Always load UI configuration (dropdown options)
         this.game_array = data.game_array;
         this.team_items = data.team_items;
-        if (data.last_inning !== undefined) {
-          this.last_inning = data.last_inning;
+
+        // Load initial values only if not restored from server
+        if (!this.restoredFromServer) {
+          this.game_title = data.game_title;
+          this.team_top = data.team_top;
+          this.team_bottom = data.team_bottom;
+          if (data.last_inning !== undefined) {
+            this.last_inning = data.last_inning;
+          }
         }
       });
-
-    this.socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
   },
   watch: {
     // 監視するデータをまとめて指定

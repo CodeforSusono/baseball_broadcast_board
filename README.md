@@ -20,18 +20,21 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 ```mermaid
 graph LR;
     subgraph "サーバー"
-        D("WebSocketサーバー</br>server.js");
+        D("WebSocketサーバー</br>server.js</br><i>Master/Slave制御</i>");
     end
 
     subgraph "クライアント (ブラウザ)"
         A("トップページ</br>index.html");
-        B("操作パネル</br>operation.html");
-        C("表示ボード</br>board.html");
+        B1("操作パネル 1</br>operation.html</br><b>Master</b>");
+        B2("操作パネル 2</br>operation.html</br><i>Slave (read-only)</i>");
+        C("表示ボード</br>board.html</br><i>Viewer</i>");
     end
 
-    D <-->|WebSocket| B;
-    D -->|WebSocket| C;
-    A --> B;
+    D <-->|WebSocket</br>game_state_update| B1;
+    D -->|WebSocket</br>game_state| B2;
+    D -->|WebSocket</br>game_state| C;
+    A --> B1;
+    A --> B2;
     A --> C;
 ```
 
@@ -158,6 +161,294 @@ graph LR;
    - クロマキー合成で緑色を抜く
 
 WebSocket接続は、アクセスしたURLのホスト名を自動的に使用するため、追加の設定は不要です。
+
+**⚠️ 注意: 複数人での同時操作について**
+
+複数の端末から`operation.html`に同時にアクセスした場合、最初に接続した端末のみが操作可能（Master）となり、後から接続した端末は閲覧専用（Slave）となります。詳細は[Master/Slave Operation Control](#masterslave-operation-control)セクションをご覧ください。
+
+## Master/Slave Operation Control
+
+### Overview
+
+The system implements a master/slave architecture to prevent conflicting updates when multiple users access the operation panel simultaneously:
+
+- **Master**: The first client to connect to `operation.html` becomes the master and has full control
+- **Slave**: Subsequent connections become slaves with read-only access
+- **Automatic Promotion**: When the master disconnects, the oldest slave is automatically promoted to master
+- **Manual Release**: Masters can voluntarily release control to allow another user to take over
+
+### Architecture
+
+#### Server-Side Role Management (server.js)
+
+The server maintains a map of all connected clients with their metadata:
+
+```javascript
+const clients = new Map(); // Map<clientId, {ws, type, role, connectedAt}>
+let masterClientId = null;
+```
+
+**Key Components:**
+
+1. **Client Identification** (lines 62-68):
+   - Each WebSocket connection receives a unique ID: `client_${counter}_${timestamp}`
+   - Client type is determined via handshake message
+
+2. **Role Assignment** (lines 147-190):
+   - Operation clients: first connection → master, others → slave
+   - Board clients: always assigned viewer role
+   - Handshake timeout (3 seconds): clients without handshake treated as board
+
+3. **Message Filtering** (lines 210-229):
+   - Only master can send `game_state_update` messages
+   - Updates from non-master clients are logged and rejected
+   - All clients receive broadcasted game state updates
+
+4. **Promotion Algorithm** (lines 93-114):
+   - On master disconnect, find all operation slaves
+   - Sort by connection time (oldest first)
+   - Promote the oldest slave to master
+   - Send `role_changed` notification
+
+#### Client-Side Role Management (public/js/main.js)
+
+**State Variables** (lines 30-32):
+```javascript
+clientRole: null,  // null | 'master' | 'slave'
+clientId: null,
+masterClientId: null,
+```
+
+**Key Features:**
+
+1. **Handshake** (lines 115-119):
+   - Sends `{type: 'handshake', client_type: 'operation'}` on connection
+   - Identifies as operation client (vs board)
+
+2. **Role Message Handling** (lines 127-152):
+   - `role_assignment`: Initial role from server
+   - `role_changed`: Role update (promotion or demotion)
+   - `game_state`: State updates from other clients
+
+3. **UI Control** (lines 89-96):
+   - `isOperationDisabled` computed property returns true for slaves
+   - All operation buttons use `:disabled="isOperationDisabled"`
+
+4. **Update Gating** (lines 188-196):
+   - `updateBoard()` only sends updates if `clientRole === 'master'`
+   - Prevents slaves from accidentally sending state changes
+
+5. **Manual Release** (lines 337-349):
+   - `releaseMasterControl()` method sends `release_master` message
+   - Only available to masters
+   - Triggers confirmation dialog
+
+#### UI Indicators (public/operation.html)
+
+**Status Display** (lines 180-202):
+- Green badge: 👑 Master (操作可能)
+- Yellow badge: 👁️ Slave (閲覧専用)
+- Displayed in navigation bar for visibility
+
+**Slave Warning Banner** (lines 208-217):
+- Alert box at top of page when role is slave
+- Explains read-only status
+- Informs user about automatic promotion
+
+**Master Control Card** (lines 366-380):
+- Only visible when `clientRole === 'master'`
+- Contains release button
+- Positioned in right column for easy access
+
+### Message Protocol
+
+#### Client → Server Messages
+
+**Handshake**:
+```json
+{
+  "type": "handshake",
+  "client_type": "operation" | "board"
+}
+```
+
+**Game State Update** (master only):
+```json
+{
+  "type": "game_state_update",
+  "data": {
+    "game_title": "...",
+    "team_top": "...",
+    "game_inning": 1,
+    ...
+  }
+}
+```
+
+**Release Master**:
+```json
+{
+  "type": "release_master"
+}
+```
+
+#### Server → Client Messages
+
+**Role Assignment**:
+```json
+{
+  "type": "role_assignment",
+  "role": "master" | "slave" | "viewer",
+  "clientId": "client_1_1234567890",
+  "masterClientId": "client_0_1234567889"
+}
+```
+
+**Role Change**:
+```json
+{
+  "type": "role_changed",
+  "newRole": "master" | "slave",
+  "reason": "master_disconnected" | "master_released"
+}
+```
+
+**Game State Broadcast**:
+```json
+{
+  "type": "game_state",
+  "data": { ... }
+}
+```
+
+### Operation Flows
+
+#### Initial Connection
+
+```
+1. Client connects to WebSocket
+2. Client sends handshake {type: "handshake", client_type: "operation"}
+3. Server checks if master exists
+   - No master → assign role: "master", set masterClientId
+   - Master exists → assign role: "slave"
+4. Server sends role_assignment message
+5. Server sends current game_state
+6. Client displays role indicator and enables/disables UI
+```
+
+#### Master Disconnect
+
+```
+1. Master's WebSocket closes
+2. Server detects close event
+3. Server calls promoteNextMaster()
+4. Server finds oldest slave by connectedAt timestamp
+5. Server updates slave's role to "master"
+6. Server sends role_changed message to new master
+7. New master enables UI controls
+```
+
+#### Manual Release
+
+```
+1. Master clicks "マスター権限を解放" button
+2. Confirmation dialog appears
+3. On confirm, client sends {type: "release_master"}
+4. Server sets masterClientId = null
+5. Server changes former master's role to "slave"
+6. Server calls promoteNextMaster()
+7. Server sends role_changed to both:
+   - Former master (newRole: "slave")
+   - New master (newRole: "master")
+8. UI updates accordingly
+```
+
+### Edge Cases
+
+**Simultaneous Connections**:
+- Race conditions resolved by server-side sequential processing
+- First processed handshake wins master role
+
+**Network Interruption**:
+- Auto-reconnect triggers new WebSocket connection
+- Client treated as new connection (loses master if had it)
+- Reconnection does not restore previous role
+
+**Multiple Browser Tabs**:
+- Each tab is an independent connection
+- Only first tab becomes master
+- Other tabs from same device become slaves
+
+**Handshake Timeout**:
+- Clients not sending handshake within 3 seconds treated as board
+- Ensures backward compatibility with old board.html versions
+- Board clients assigned "viewer" role (no operation rights)
+
+### Backward Compatibility
+
+**Board Clients**:
+- `board.html` updated to send handshake (lines 72-76 in board.js)
+- Old versions without handshake still work (timeout → viewer)
+- Board clients never interfere with operation master/slave logic
+
+**Legacy Game State Messages**:
+- Messages without `type` field treated as game state updates
+- Maintains compatibility with older client code
+- Server checks: `if (data.type === 'game_state_update' || !data.type)`
+
+### Testing
+
+**Basic Functionality**:
+```bash
+# Terminal 1: Start server
+node server.js
+
+# Browser 1: Open operation panel
+# Should see: 👑 Master (操作可能)
+open http://localhost:8080/operation.html
+
+# Browser 2: Open another operation panel
+# Should see: 👁️ Slave (閲覧専用)
+open http://localhost:8080/operation.html
+```
+
+**Master Promotion**:
+1. Close Browser 1 (master)
+2. Browser 2 should automatically become master
+3. Check navigation bar for role change
+
+**Manual Release**:
+1. With Browser 1 as master and Browser 2 as slave
+2. Click "マスター権限を解放" in Browser 1
+3. Confirm dialog
+4. Browser 1 becomes slave, Browser 2 becomes master
+
+**Network Logging**:
+```bash
+# Enable detailed logging
+node server.js
+
+# Watch for log messages:
+# - Client connected: client_X_timestamp
+# - Client client_X_timestamp registered as operation/master
+# - Client client_Y_timestamp registered as operation/slave
+# - Rejected update from non-master client client_Y_timestamp
+# - Master client_X_timestamp released control
+# - Client client_Y_timestamp promoted to master
+```
+
+### Security Considerations
+
+**Current Implementation**:
+- No authentication: any client can connect
+- Master determined solely by connection order
+- Suitable for trusted local networks or single-user scenarios
+
+**Potential Enhancements**:
+- Password-protected master access
+- IP-based access control
+- Session-based role persistence
+- Admin override capabilities
 
 ## 初期設定ファイルの生成
 

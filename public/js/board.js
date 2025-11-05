@@ -68,11 +68,23 @@ const board = Vue.createApp({
       console.log('WebSocket connection established for display board.');
       this.connectionStatus = 'connected';
       this.reconnectAttempts = 0;
+
+      // Send handshake to identify as board client
+      this.socket.send(JSON.stringify({
+        type: 'handshake',
+        client_type: 'board'
+      }));
     },
 
     handleWebSocketMessage(event) {
       try {
-        this.boardData = JSON.parse(event.data);
+        const message = JSON.parse(event.data);
+
+        // Handle game state update
+        if (message.type === 'game_state' || !message.type) {
+          this.boardData = message.data || message;
+        }
+        // Ignore other message types (role_assignment, etc.)
       } catch (error) {
         console.error('Error parsing board data:', error);
       }

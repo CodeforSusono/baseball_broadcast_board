@@ -123,6 +123,7 @@ graph LR;
       ![トップページ](doc/index.png)
     - **操作パネル**: `http://localhost:8080/operation.html` にアクセスします。
       ![操作パネル](doc/operation.png)
+      ![操作パネル（複数からアクセスしたとき）](doc/operation_slave.png) 
     - **表示ボード**: `http://localhost:8080/board.html` にアクセスします。この URL を OBS 等のブラウザソースに設定してください。
 
 4.  **サーバーの停止**:

@@ -26,6 +26,10 @@ const app = Vue.createApp({
     maxReconnectAttempts: 10,
     reconnectDelay: 1000,
     reconnectTimer: null,
+    // Master/Slave control
+    clientRole: null,  // null | 'master' | 'slave'
+    clientId: null,
+    masterClientId: null,
   }),
   created() {
     // Initialize WebSocket connection
@@ -86,6 +90,14 @@ const app = Vue.createApp({
         last_inning: this.last_inning,
       };
     },
+    // UI should be disabled if role is slave
+    isOperationDisabled() {
+      return this.clientRole === 'slave';
+    },
+    // Show master indicator
+    isMaster() {
+      return this.clientRole === 'master';
+    },
   },
   methods: {
     // WebSocket connection management
@@ -111,32 +123,59 @@ const app = Vue.createApp({
       console.log("WebSocket connection established for control panel.");
       this.connectionStatus = 'connected';
       this.reconnectAttempts = 0;
+
+      // Send handshake to identify as operation client
+      this.socket.send(JSON.stringify({
+        type: 'handshake',
+        client_type: 'operation'
+      }));
     },
 
     handleWebSocketMessage(event) {
       try {
-        const savedState = JSON.parse(event.data);
-        console.log("Received saved game state from server");
+        const message = JSON.parse(event.data);
 
-        // Restore game state (but not UI configuration like game_array and team_items)
-        this.game_title = savedState.game_title || this.game_title;
-        this.team_top = savedState.team_top || this.team_top;
-        this.team_bottom = savedState.team_bottom || this.team_bottom;
-        this.game_inning = savedState.game_inning || 0;
-        this.last_inning = savedState.last_inning || 9;
-        this.top = savedState.top || false;
-        this.first_base = savedState.first_base || false;
-        this.second_base = savedState.second_base || false;
-        this.third_base = savedState.third_base || false;
-        this.ball_cnt = savedState.ball_cnt || 0;
-        this.strike_cnt = savedState.strike_cnt || 0;
-        this.out_cnt = savedState.out_cnt || 0;
-        this.score_top = savedState.score_top || 0;
-        this.score_bottom = savedState.score_bottom || 0;
+        // Handle role assignment
+        if (message.type === 'role_assignment') {
+          this.clientRole = message.role;
+          this.clientId = message.clientId;
+          this.masterClientId = message.masterClientId;
+          console.log(`Assigned role: ${message.role}`);
+          return;
+        }
 
-        this.restoredFromServer = true;
+        // Handle role change
+        if (message.type === 'role_changed') {
+          this.clientRole = message.newRole;
+          console.log(`Role changed to: ${message.newRole} (reason: ${message.reason})`);
+          return;
+        }
+
+        // Handle game state update
+        if (message.type === 'game_state' || !message.type) {
+          const savedState = message.data || message;
+          console.log("Received game state from server");
+
+          // Restore game state (but not UI configuration like game_array and team_items)
+          this.game_title = savedState.game_title || this.game_title;
+          this.team_top = savedState.team_top || this.team_top;
+          this.team_bottom = savedState.team_bottom || this.team_bottom;
+          this.game_inning = savedState.game_inning || 0;
+          this.last_inning = savedState.last_inning || 9;
+          this.top = savedState.top || false;
+          this.first_base = savedState.first_base || false;
+          this.second_base = savedState.second_base || false;
+          this.third_base = savedState.third_base || false;
+          this.ball_cnt = savedState.ball_cnt || 0;
+          this.strike_cnt = savedState.strike_cnt || 0;
+          this.out_cnt = savedState.out_cnt || 0;
+          this.score_top = savedState.score_top || 0;
+          this.score_bottom = savedState.score_bottom || 0;
+
+          this.restoredFromServer = true;
+        }
       } catch (error) {
-        console.error("Error parsing saved game state:", error);
+        console.error("Error parsing message:", error);
       }
     },
 
@@ -186,8 +225,12 @@ const app = Vue.createApp({
 
     // Game board update
     updateBoard() {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify(this.boardData));
+      // Only send updates if we are master
+      if (this.socket && this.socket.readyState === WebSocket.OPEN && this.clientRole === 'master') {
+        this.socket.send(JSON.stringify({
+          type: 'game_state_update',
+          data: this.boardData
+        }));
       }
     },
     initParams: function () {
@@ -333,6 +376,19 @@ const app = Vue.createApp({
       this.score_top = 0;         // Reset top team score
       this.score_bottom = 0;      // Reset bottom team score
       this.initParams();          // Reset BSO and runners
+    },
+    releaseMasterControl: function () {
+      if (this.clientRole !== 'master') return;
+
+      if (!confirm('マスター権限を解放してよろしいですか？\n\n他の接続中のクライアントがマスターになります。')) {
+        return;
+      }
+
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify({
+          type: 'release_master'
+        }));
+      }
     },
   },
 });

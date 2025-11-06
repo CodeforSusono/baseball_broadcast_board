@@ -167,105 +167,105 @@ WebSocket接続は、アクセスしたURLのホスト名を自動的に使用�
 
 複数の端末から`operation.html`に同時にアクセスした場合、最初に接続した端末のみが操作可能（Master）となり、後から接続した端末は閲覧専用（Slave）となります。詳細は[Master/Slave Operation Control](#masterslave-operation-control)セクションをご覧ください。
 
-## Master/Slave Operation Control
+## マスター/スレーブ操作制御
 
-### Overview
+### 概要
 
-The system implements a master/slave architecture to prevent conflicting updates when multiple users access the operation panel simultaneously:
+複数のユーザーが操作パネルに同時にアクセスする場合の競合を防ぐため、マスター/スレーブアーキテクチャを実装しています:
 
-- **Master**: The first client to connect to `operation.html` becomes the master and has full control
-- **Slave**: Subsequent connections become slaves with read-only access
-- **Automatic Promotion**: When the master disconnects, the oldest slave is automatically promoted to master
-- **Manual Release**: Masters can voluntarily release control to allow another user to take over
+- **マスター**: 最初に `operation.html` に接続したクライアントがマスターとなり、完全な操作権限を持ちます
+- **スレーブ**: 後から接続したクライアントはスレーブとなり、閲覧専用となります
+- **自動昇格**: マスターが切断されると、最も古いスレーブが自動的にマスターに昇格します
+- **手動解放**: マスターは自発的に操作権限を解放し、他のユーザーに引き継ぐことができます
 
-### Architecture
+### アーキテクチャ
 
-#### Server-Side Role Management (server.js)
+#### サーバー側のロール管理 (server.js)
 
-The server maintains a map of all connected clients with their metadata:
+サーバーは接続中のすべてのクライアントとそのメタデータをマップで管理します:
 
 ```javascript
 const clients = new Map(); // Map<clientId, {ws, type, role, connectedAt}>
 let masterClientId = null;
 ```
 
-**Key Components:**
+**主要コンポーネント:**
 
-1. **Client Identification** (lines 62-68):
-   - Each WebSocket connection receives a unique ID: `client_${counter}_${timestamp}`
-   - Client type is determined via handshake message
+1. **クライアント識別** (62-68行目):
+   - 各WebSocket接続には一意のID `client_${counter}_${timestamp}` が割り当てられます
+   - クライアントタイプはハンドシェイクメッセージで判別されます
 
-2. **Role Assignment** (lines 147-190):
-   - Operation clients: first connection → master, others → slave
-   - Board clients: always assigned viewer role
-   - Handshake timeout (3 seconds): clients without handshake treated as board
+2. **ロール割り当て** (147-190行目):
+   - 操作クライアント: 最初の接続 → マスター、それ以降 → スレーブ
+   - ボードクライアント: 常にビューアーロールを割り当て
+   - ハンドシェイクタイムアウト (3秒): ハンドシェイクなしのクライアントはボードとして扱われます
 
-3. **Message Filtering** (lines 210-229):
-   - Only master can send `game_state_update` messages
-   - Updates from non-master clients are logged and rejected
-   - All clients receive broadcasted game state updates
+3. **メッセージフィルタリング** (210-229行目):
+   - マスターのみが `game_state_update` メッセージを送信可能
+   - マスター以外からの更新はログに記録され、拒否されます
+   - すべてのクライアントはブロードキャストされた試合状態の更新を受信します
 
-4. **Promotion Algorithm** (lines 93-114):
-   - On master disconnect, find all operation slaves
-   - Sort by connection time (oldest first)
-   - Promote the oldest slave to master
-   - Send `role_changed` notification
+4. **昇格アルゴリズム** (93-114行目):
+   - マスター切断時、すべての操作スレーブを検索
+   - 接続時刻でソート（最古優先）
+   - 最も古いスレーブをマスターに昇格
+   - `role_changed` 通知を送信
 
-#### Client-Side Role Management (public/js/main.js)
+#### クライアント側のロール管理 (public/js/main.js)
 
-**State Variables** (lines 30-32):
+**状態変数** (30-32行目):
 ```javascript
 clientRole: null,  // null | 'master' | 'slave'
 clientId: null,
 masterClientId: null,
 ```
 
-**Key Features:**
+**主要機能:**
 
-1. **Handshake** (lines 115-119):
-   - Sends `{type: 'handshake', client_type: 'operation'}` on connection
-   - Identifies as operation client (vs board)
+1. **ハンドシェイク** (115-119行目):
+   - 接続時に `{type: 'handshake', client_type: 'operation'}` を送信
+   - 操作クライアント（ボードと区別）として識別
 
-2. **Role Message Handling** (lines 127-152):
-   - `role_assignment`: Initial role from server
-   - `role_changed`: Role update (promotion or demotion)
-   - `game_state`: State updates from other clients
+2. **ロールメッセージの処理** (127-152行目):
+   - `role_assignment`: サーバーからの初期ロール
+   - `role_changed`: ロール更新（昇格または降格）
+   - `game_state`: 他のクライアントからの状態更新
 
-3. **UI Control** (lines 89-96):
-   - `isOperationDisabled` computed property returns true for slaves
-   - All operation buttons use `:disabled="isOperationDisabled"`
+3. **UI制御** (89-96行目):
+   - `isOperationDisabled` 算出プロパティはスレーブの場合にtrueを返す
+   - すべての操作ボタンは `:disabled="isOperationDisabled"` を使用
 
-4. **Update Gating** (lines 188-196):
-   - `updateBoard()` only sends updates if `clientRole === 'master'`
-   - Prevents slaves from accidentally sending state changes
+4. **更新ゲート** (188-196行目):
+   - `updateBoard()` は `clientRole === 'master'` の場合のみ更新を送信
+   - スレーブが誤って状態変更を送信するのを防止
 
-5. **Manual Release** (lines 337-349):
-   - `releaseMasterControl()` method sends `release_master` message
-   - Only available to masters
-   - Triggers confirmation dialog
+5. **手動解放** (337-349行目):
+   - `releaseMasterControl()` メソッドは `release_master` メッセージを送信
+   - マスターのみ利用可能
+   - 確認ダイアログを表示
 
-#### UI Indicators (public/operation.html)
+#### UI インジケーター (public/operation.html)
 
-**Status Display** (lines 180-202):
-- Green badge: 👑 Master (操作可能)
-- Yellow badge: 👁️ Slave (閲覧専用)
-- Displayed in navigation bar for visibility
+**ステータス表示** (180-202行目):
+- 緑色バッジ: 👑 マスター (操作可能)
+- 黄色バッジ: 👁️ スレーブ (閲覧専用)
+- 視認性のためナビゲーションバーに表示
 
-**Slave Warning Banner** (lines 208-217):
-- Alert box at top of page when role is slave
-- Explains read-only status
-- Informs user about automatic promotion
+**スレーブ警告バナー** (208-217行目):
+- ロールがスレーブの場合、ページ上部にアラートボックスを表示
+- 閲覧専用状態を説明
+- 自動昇格について通知
 
-**Master Control Card** (lines 366-380):
-- Only visible when `clientRole === 'master'`
-- Contains release button
-- Positioned in right column for easy access
+**マスター制御カード** (366-380行目):
+- `clientRole === 'master'` の場合のみ表示
+- 解放ボタンを含む
+- 簡単にアクセスできるよう右列に配置
 
-### Message Protocol
+### メッセージプロトコル
 
-#### Client → Server Messages
+#### クライアント → サーバー メッセージ
 
-**Handshake**:
+**ハンドシェイク**:
 ```json
 {
   "type": "handshake",
@@ -273,7 +273,7 @@ masterClientId: null,
 }
 ```
 
-**Game State Update** (master only):
+**試合状態更新** (マスターのみ):
 ```json
 {
   "type": "game_state_update",
@@ -286,16 +286,16 @@ masterClientId: null,
 }
 ```
 
-**Release Master**:
+**マスター解放**:
 ```json
 {
   "type": "release_master"
 }
 ```
 
-#### Server → Client Messages
+#### サーバー → クライアント メッセージ
 
-**Role Assignment**:
+**ロール割り当て**:
 ```json
 {
   "type": "role_assignment",
@@ -305,7 +305,7 @@ masterClientId: null,
 }
 ```
 
-**Role Change**:
+**ロール変更**:
 ```json
 {
   "type": "role_changed",
@@ -314,7 +314,7 @@ masterClientId: null,
 }
 ```
 
-**Game State Broadcast**:
+**試合状態ブロードキャスト**:
 ```json
 {
   "type": "game_state",
@@ -322,114 +322,114 @@ masterClientId: null,
 }
 ```
 
-### Operation Flows
+### 操作フロー
 
-#### Initial Connection
-
-```
-1. Client connects to WebSocket
-2. Client sends handshake {type: "handshake", client_type: "operation"}
-3. Server checks if master exists
-   - No master → assign role: "master", set masterClientId
-   - Master exists → assign role: "slave"
-4. Server sends role_assignment message
-5. Server sends current game_state
-6. Client displays role indicator and enables/disables UI
-```
-
-#### Master Disconnect
+#### 初回接続
 
 ```
-1. Master's WebSocket closes
-2. Server detects close event
-3. Server calls promoteNextMaster()
-4. Server finds oldest slave by connectedAt timestamp
-5. Server updates slave's role to "master"
-6. Server sends role_changed message to new master
-7. New master enables UI controls
+1. クライアントがWebSocketに接続
+2. クライアントがハンドシェイク {type: "handshake", client_type: "operation"} を送信
+3. サーバーがマスターの存在を確認
+   - マスターなし → ロール: "master" を割り当て、masterClientIdを設定
+   - マスターあり → ロール: "slave" を割り当て
+4. サーバーが role_assignment メッセージを送信
+5. サーバーが現在の game_state を送信
+6. クライアントがロールインジケーターを表示し、UIを有効/無効化
 ```
 
-#### Manual Release
+#### マスター切断
 
 ```
-1. Master clicks "マスター権限を解放" button
-2. Confirmation dialog appears
-3. On confirm, client sends {type: "release_master"}
-4. Server sets masterClientId = null
-5. Server changes former master's role to "slave"
-6. Server calls promoteNextMaster()
-7. Server sends role_changed to both:
-   - Former master (newRole: "slave")
-   - New master (newRole: "master")
-8. UI updates accordingly
+1. マスターのWebSocketが閉じる
+2. サーバーが切断イベントを検出
+3. サーバーが promoteNextMaster() を呼び出し
+4. サーバーが connectedAt タイムスタンプで最も古いスレーブを検索
+5. サーバーがスレーブのロールを "master" に更新
+6. サーバーが新マスターに role_changed メッセージを送信
+7. 新マスターがUI制御を有効化
 ```
 
-### Edge Cases
+#### 手動解放
 
-**Simultaneous Connections**:
-- Race conditions resolved by server-side sequential processing
-- First processed handshake wins master role
+```
+1. マスターが「マスター権限を解放」ボタンをクリック
+2. 確認ダイアログが表示される
+3. 確定すると、クライアントが {type: "release_master"} を送信
+4. サーバーが masterClientId = null に設定
+5. サーバーが元マスターのロールを "slave" に変更
+6. サーバーが promoteNextMaster() を呼び出し
+7. サーバーが両方に role_changed を送信:
+   - 元マスター (newRole: "slave")
+   - 新マスター (newRole: "master")
+8. UIが適切に更新される
+```
 
-**Network Interruption**:
-- Auto-reconnect triggers new WebSocket connection
-- Client treated as new connection (loses master if had it)
-- Reconnection does not restore previous role
+### エッジケース
 
-**Multiple Browser Tabs**:
-- Each tab is an independent connection
-- Only first tab becomes master
-- Other tabs from same device become slaves
+**同時接続**:
+- レースコンディションはサーバー側の逐次処理で解決
+- 最初に処理されたハンドシェイクがマスターロールを獲得
 
-**Handshake Timeout**:
-- Clients not sending handshake within 3 seconds treated as board
-- Ensures backward compatibility with old board.html versions
-- Board clients assigned "viewer" role (no operation rights)
+**ネットワーク中断**:
+- 自動再接続が新しいWebSocket接続をトリガー
+- クライアントは新規接続として扱われる（マスターだった場合でも失う）
+- 再接続は以前のロールを復元しない
 
-### Backward Compatibility
+**複数のブラウザタブ**:
+- 各タブは独立した接続
+- 最初のタブのみがマスターとなる
+- 同じデバイスからの他のタブはスレーブとなる
 
-**Board Clients**:
-- `board.html` updated to send handshake (lines 72-76 in board.js)
-- Old versions without handshake still work (timeout → viewer)
-- Board clients never interfere with operation master/slave logic
+**ハンドシェイクタイムアウト**:
+- 3秒以内にハンドシェイクを送信しないクライアントはボードとして扱われる
+- 古いboard.htmlバージョンとの後方互換性を確保
+- ボードクライアントには "viewer" ロールが割り当てられる（操作権限なし）
 
-**Legacy Game State Messages**:
-- Messages without `type` field treated as game state updates
-- Maintains compatibility with older client code
-- Server checks: `if (data.type === 'game_state_update' || !data.type)`
+### 後方互換性
 
-### Testing
+**ボードクライアント**:
+- `board.html` はハンドシェイクを送信するように更新（board.js の72-76行目）
+- ハンドシェイクなしの古いバージョンも動作（タイムアウト → ビューアー）
+- ボードクライアントは操作マスター/スレーブロジックに干渉しない
 
-**Basic Functionality**:
+**レガシー試合状態メッセージ**:
+- `type` フィールドのないメッセージは試合状態更新として扱われる
+- 古いクライアントコードとの互換性を維持
+- サーバーチェック: `if (data.type === 'game_state_update' || !data.type)`
+
+### テスト
+
+**基本機能**:
 ```bash
-# Terminal 1: Start server
+# ターミナル 1: サーバー起動
 node server.js
 
-# Browser 1: Open operation panel
-# Should see: 👑 Master (操作可能)
+# ブラウザ 1: 操作パネルを開く
+# 表示されるべき内容: 👑 マスター (操作可能)
 open http://localhost:8080/operation.html
 
-# Browser 2: Open another operation panel
-# Should see: 👁️ Slave (閲覧専用)
+# ブラウザ 2: 別の操作パネルを開く
+# 表示されるべき内容: 👁️ スレーブ (閲覧専用)
 open http://localhost:8080/operation.html
 ```
 
-**Master Promotion**:
-1. Close Browser 1 (master)
-2. Browser 2 should automatically become master
-3. Check navigation bar for role change
+**マスター昇格**:
+1. ブラウザ 1 (マスター) を閉じる
+2. ブラウザ 2 が自動的にマスターに昇格するはず
+3. ナビゲーションバーでロール変更を確認
 
-**Manual Release**:
-1. With Browser 1 as master and Browser 2 as slave
-2. Click "マスター権限を解放" in Browser 1
-3. Confirm dialog
-4. Browser 1 becomes slave, Browser 2 becomes master
+**手動解放**:
+1. ブラウザ 1 がマスター、ブラウザ 2 がスレーブの状態で
+2. ブラウザ 1 で「マスター権限を解放」をクリック
+3. ダイアログを確認
+4. ブラウザ 1 がスレーブに、ブラウザ 2 がマスターになる
 
-**Network Logging**:
+**ネットワークログ**:
 ```bash
-# Enable detailed logging
+# 詳細ログを有効化
 node server.js
 
-# Watch for log messages:
+# ログメッセージを確認:
 # - Client connected: client_X_timestamp
 # - Client client_X_timestamp registered as operation/master
 # - Client client_Y_timestamp registered as operation/slave
@@ -438,18 +438,18 @@ node server.js
 # - Client client_Y_timestamp promoted to master
 ```
 
-### Security Considerations
+### セキュリティ考慮事項
 
-**Current Implementation**:
-- No authentication: any client can connect
-- Master determined solely by connection order
-- Suitable for trusted local networks or single-user scenarios
+**現在の実装**:
+- 認証なし: 任意のクライアントが接続可能
+- マスターは接続順のみで決定
+- 信頼できるローカルネットワークまたは単一ユーザーシナリオに適している
 
-**Potential Enhancements**:
-- Password-protected master access
-- IP-based access control
-- Session-based role persistence
-- Admin override capabilities
+**将来の拡張案**:
+- パスワード保護されたマスターアクセス
+- IPベースのアクセス制御
+- セッションベースのロール永続化
+- 管理者オーバーライド機能
 
 ## 初期設定ファイルの生成
 

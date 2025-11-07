@@ -251,11 +251,11 @@
           <div class="accordion" id="usageAccordion">
             <div class="accordion-item">
               <h2 class="accordion-header" id="headingUsage">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsage" aria-expanded="false" aria-controls="collapseUsage">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsage" aria-expanded="true" aria-controls="collapseUsage">
                   <strong>📖 使い方ガイド</strong>
                 </button>
               </h2>
-              <div id="collapseUsage" class="accordion-collapse collapse" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
+              <div id="collapseUsage" class="accordion-collapse collapse show" aria-labelledby="headingUsage" data-bs-parent="#usageAccordion">
                 <div class="accordion-body">
 
                   <!-- 準備 -->
@@ -271,8 +271,8 @@
                   <!-- サーバー起動 -->
                   <h6 class="fw-bold mb-2">1. サーバーを起動</h6>
                   <p class="mb-2">コマンドラインで以下を実行してください:</p>
-                  <pre class="bg-light p-2 rounded"><code>NODE_ENV=production node server.js</code></pre>
-                  <p class="text-muted small mb-3">サーバーはポート8080で起動します。</p>
+                  <pre class="bg-light p-2 rounded"><code>node server.js</code></pre>
+                  <p class="text-muted small mb-3">サーバーはポート8080で起動します。本番環境では <code>NODE_ENV=production node server.js</code> を使用してください。</p>
 
                   <!-- 基本的な使用フロー -->
                   <h6 class="fw-bold mb-2">2. 基本的な使用フロー</h6>
@@ -301,7 +301,8 @@ http://&lt;サーバーのIPアドレス&gt;:8080/board.html</code></pre>
                   <ol class="mb-0">
                     <li>OBSで「ソース」→「追加」→「ブラウザ」を選択</li>
                     <li>URLに表示ボードのアドレスを入力 (例: <code>http://192.168.1.100:8080/board.html</code>)</li>
-                    <li>クロマキー合成で緑色を抜いてください</li>
+                    <li><strong>幅: 1920px、高さ: 1080px</strong>（または配信解像度に合わせて調整）</li>
+                    <li>「エフェクトフィルタ」→「クロマキー」を追加し、キーカラータイプで緑色を選択</li>
                   </ol>
 
                 </div>
@@ -494,30 +495,21 @@ team_names:
 
                   <p class="mb-2">攻守交代・出塁カードには2種類の初期化ボタンがあります：</p>
 
-                  <div class="alert alert-danger mb-3" role="alert">
-                    <small>
-                      <strong>🔄 試合初期化</strong><br>
-                      <strong>同じチーム同士</strong>で次の試合を開始する場合に使用します。<br>
-                      リセットされる内容: イニング、得点、BSO、出塁者<br>
-                      <strong>保持される内容: 大会名、チーム名</strong>
-                    </small>
-                  </div>
-
-                  <div class="alert alert-danger mb-3" role="alert">
-                    <small>
-                      <strong>📋 新規大会で初期化</strong><br>
-                      <strong>別の大会・別のチーム</strong>で試合を開始する場合に使用します。<br>
-                      <code>config/init_data.json</code> から大会設定を読み込み、すべてをリセットします。<br>
-                      リセットされる内容: <strong>大会名、チーム名</strong>、イニング、得点、BSO、出塁者
-                    </small>
-                  </div>
-
-                  <p class="mb-2"><strong>使い方:</strong></p>
-                  <ol class="mb-3">
-                    <li>攻守交代・出塁カードの該当ボタンを押す。</li>
+                  <p class="mb-2"><strong>方法1: 同じチームで次の試合を開始する場合</strong></p>
+                  <ul class="mb-3">
+                    <li>攻守交代・出塁カードの <strong>「🔄 試合初期化」</strong> ボタンを押す。</li>
                     <li>確認ダイアログが表示されるので、内容を確認して <strong>「OK」</strong> を押す。</li>
-                    <li>試合状況がリセットされる。</li>
-                  </ol>
+                    <li>イニング、得点、BSO・出塁者がリセットされ、試合前の状態に戻ります。</li>
+                    <li><strong>チーム名と大会名はそのまま維持されます。</strong></li>
+                  </ul>
+
+                  <p class="mb-2 mt-3"><strong>方法2: 新しい大会を開始する場合</strong></p>
+                  <ul class="mb-3">
+                    <li><code>npm run init</code> で新しい大会設定（<code>config/init_data.json</code>）を生成する。</li>
+                    <li>操作パネルの <strong>「📋 新規大会で初期化」</strong> ボタンを押す。</li>
+                    <li>確認ダイアログで <strong>「OK」</strong> を押す。</li>
+                    <li>新しい大会名、チーム名、イニング設定が読み込まれます。</li>
+                  </ul>
 
                   <div class="alert alert-warning mb-0" role="alert">
                     <small>

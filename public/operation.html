@@ -270,7 +270,7 @@
             </div>
 
             <!-- BSOカウントカード -->
-            <div class="card">
+            <div class="card mb-4">
               <div class="card-header h5">BSO カウント</div>
               <div class="card-body">
                 <div class="row align-items-center text-center mb-3">
@@ -308,6 +308,28 @@
                 </div>
               </div>
             </div>
+
+            <!-- Master Control Card (only visible for master) -->
+            <div v-if="clientRole === 'master'" class="card border-primary">
+              <div class="card-header h5 bg-primary text-white">
+                👑 マスター権限
+              </div>
+              <div class="card-body">
+                <p class="mb-0">
+                  現在、あなたがマスターとして操作可能です。<br>
+                  権限を解放すると、他のオペレーターが操作できるようになります。
+                </p>
+              </div>
+              <div class="card-footer">
+                <div class="row">
+                  <div class="col-12 text-center">
+                    <button class="btn btn-warning" @click="releaseMasterControl">
+                      🔓 マスター権限を解放
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 右列 -->
@@ -322,19 +344,27 @@
                   <button class="btn btn-outline-secondary" @click="gameForward" :disabled="isOperationDisabled">進む &raquo;</button>
                 </div>
                 <!-- ランナー -->
-                <div class="position-relative mx-auto mb-4" style="width: 150px; height: 100px;">
+                <div class="position-relative mx-auto" style="width: 150px; height: 100px;">
                   <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']" :disabled="isOperationDisabled">2B</button>
                   <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']" :disabled="isOperationDisabled">3B</button>
                   <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']" :disabled="isOperationDisabled">1B</button>
                 </div>
-                <!-- 試合初期化ボタン -->
-                <button class="btn btn-danger w-100 mb-2" @click="resetGame" :disabled="isOperationDisabled">
-                  🔄 試合初期化
-                </button>
-                <!-- 新規大会で初期化ボタン -->
-                <button class="btn btn-danger w-100" @click="loadFromInitData" :disabled="isOperationDisabled">
-                  📋 新規大会で初期化
-                </button>
+              </div>
+              <div class="card-footer">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <!-- 試合初期化ボタン -->
+                    <button class="btn btn-danger w-100" @click="resetGame" :disabled="isOperationDisabled">
+                      🔄 試合初期化
+                    </button>
+                  </div>
+                  <div class="col-12">
+                    <!-- 新規大会で初期化ボタン -->
+                    <button class="btn btn-danger w-100" @click="loadFromInitData" :disabled="isOperationDisabled">
+                      📋 新規大会で初期化
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -364,22 +394,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Master Control Card (only visible for master) -->
-            <div v-if="clientRole === 'master'" class="card border-primary">
-              <div class="card-header h5 bg-primary text-white">
-                👑 マスター権限
-              </div>
-              <div class="card-body text-center">
-                <p class="mb-3">
-                  現在、あなたがマスターとして操作可能です。<br>
-                  権限を解放すると、他のオペレーターが操作できるようになります。
-                </p>
-                <button class="btn btn-warning" @click="releaseMasterControl">
-                  🔓 マスター権限を解放
-                </button>
               </div>
             </div>
           </div>

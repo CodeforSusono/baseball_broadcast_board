@@ -503,7 +503,6 @@ npm run pm2:stop
 - **[システムアーキテクチャ](doc/ARCHITECTURE.md)** - 技術スタック、状態管理、WebSocketプロトコル、セキュリティ
 - **[Master/Slave アーキテクチャ](doc/MASTER_SLAVE_ARCHITECTURE.md)** - 詳細な実装、メッセージプロトコル、エッジケース、テスト手順
 - **[WebSocket自動再接続](doc/WEBSOCKET_RECONNECTION.md)** - 再接続アルゴリズム、実装詳細、トラブルシューティング
-- **[開発者ガイド (CLAUDE.md)](CLAUDE.md)** - AI開発支援用プロジェクトガイド
 
 ### 運用者向けドキュメント
 

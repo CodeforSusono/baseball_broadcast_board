@@ -390,6 +390,53 @@ const app = Vue.createApp({
         }));
       }
     },
+    loadFromInitData: function () {
+      // Confirmation dialog
+      let confirmMessage = '新規大会で初期化してよろしいですか？\n\n';
+      confirmMessage += 'config/init_data.json から大会設定を読み込み、\n';
+      confirmMessage += '試合状況（イニング、得点、BSO、ランナー）をすべてリセットします。';
+
+      if (this.game_inning >= 1 && this.game_inning <= this.last_inning) {
+        confirmMessage = '⚠️ 試合中ですが、本当に新規大会で初期化しますか？\n\n' + confirmMessage;
+      }
+
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      // Load init_data.json
+      fetch("/init_data.json")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // Load all fields from init_data.json
+          this.game_title = data.game_title || '';
+          this.team_top = data.team_top || '';
+          this.team_bottom = data.team_bottom || '';
+          this.last_inning = data.last_inning || 9;
+
+          // Update UI configuration (dropdown options)
+          this.game_array = data.game_array || [];
+          this.team_items = data.team_items || [];
+
+          // Reset game state to initial values
+          this.game_inning = 0;      // Before game starts
+          this.top = true;            // Top of inning
+          this.score_top = 0;         // Reset top team score
+          this.score_bottom = 0;      // Reset bottom team score
+          this.initParams();          // Reset BSO and runners
+
+          console.log('新規大会で初期化しました:', data.game_title);
+        })
+        .catch((error) => {
+          console.error('init_data.json の読み込みに失敗しました:', error);
+          alert('エラー: 大会設定ファイル (init_data.json) の読み込みに失敗しました。\n\n' + error.message);
+        });
+    },
   },
 });
 app.component("scoreboard", scoreboardComponent);

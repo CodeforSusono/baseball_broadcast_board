@@ -64,6 +64,51 @@ function saveInitData(data) {
   console.log(`✓ 先攻チーム: ${data.team_top}`);
   console.log(`✓ 後攻チーム: ${data.team_bottom}`);
   console.log(`✓ ${INIT_DATA_FILE} を生成しました`);
+
+  // Offer to delete current_game.json
+  deleteCurrentGameJson();
+}
+
+// Delete current_game.json to ensure new tournament settings are applied
+function deleteCurrentGameJson() {
+  const CURRENT_GAME_FILE = path.resolve('./data/current_game.json');
+
+  if (!fs.existsSync(CURRENT_GAME_FILE)) {
+    console.log('');
+    console.log('💡 data/current_game.json は存在しないため、次回起動時に新しい設定が適用されます。');
+    return;
+  }
+
+  console.log('');
+  console.log('⚠️  既存の試合データ (data/current_game.json) が見つかりました。');
+  console.log('   このファイルを削除しないと、新しい大会設定が反映されません。');
+  console.log('');
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question('data/current_game.json を削除しますか？ [Y/n]: ', (answer) => {
+    const shouldDelete = !answer.trim() || answer.trim().toLowerCase() === 'y' || answer.trim().toLowerCase() === 'yes';
+
+    if (shouldDelete) {
+      try {
+        fs.unlinkSync(CURRENT_GAME_FILE);
+        console.log('✓ data/current_game.json を削除しました。');
+        console.log('✓ サーバーを再起動すると、新しい大会設定が適用されます。');
+      } catch (error) {
+        console.error(`✗ エラー: data/current_game.json の削除に失敗しました: ${error.message}`);
+      }
+    } else {
+      console.log('✓ data/current_game.json を保持しました。');
+      console.log('💡 新しい大会設定を適用するには:');
+      console.log('   1. 操作パネルの「📋 新規大会で初期化」ボタンをクリック、または');
+      console.log('   2. data/current_game.json を手動で削除してサーバーを再起動してください。');
+    }
+
+    rl.close();
+  });
 }
 
 // Interactive mode

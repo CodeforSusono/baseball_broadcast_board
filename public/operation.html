@@ -328,8 +328,12 @@
                   <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']" :disabled="isOperationDisabled">1B</button>
                 </div>
                 <!-- 試合初期化ボタン -->
-                <button class="btn btn-danger" @click="resetGame" :disabled="isOperationDisabled">
+                <button class="btn btn-danger w-100 mb-2" @click="resetGame" :disabled="isOperationDisabled">
                   🔄 試合初期化
+                </button>
+                <!-- 新規大会で初期化ボタン -->
+                <button class="btn btn-danger w-100" @click="loadFromInitData" :disabled="isOperationDisabled">
+                  📋 新規大会で初期化
                 </button>
               </div>
             </div>

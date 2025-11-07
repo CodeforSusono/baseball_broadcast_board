@@ -492,14 +492,34 @@ team_names:
                   <!-- 試合の初期化 -->
                   <h6 class="fw-bold mb-2 mt-4">試合の初期化</h6>
 
-                  <p class="mb-2"><strong>試合終了後、次の試合を開始する場合</strong></p>
-                  <ul class="mb-3">
-                    <li>攻守交代・出塁カードの <strong>「🔄 試合初期化」</strong> ボタンを押す。</li>
-                    <li>確認ダイアログが表示されるので、内容を確認して <strong>「OK」</strong> を押す。</li>
-                    <li>イニングが「試合前」に、得点が両チーム0に、BSO・出塁者がすべてリセットされる。</li>
-                  </ul>
+                  <p class="mb-2">攻守交代・出塁カードには2種類の初期化ボタンがあります：</p>
 
-                  <div class="alert alert-danger mb-0" role="alert">
+                  <div class="alert alert-danger mb-3" role="alert">
+                    <small>
+                      <strong>🔄 試合初期化</strong><br>
+                      <strong>同じチーム同士</strong>で次の試合を開始する場合に使用します。<br>
+                      リセットされる内容: イニング、得点、BSO、出塁者<br>
+                      <strong>保持される内容: 大会名、チーム名</strong>
+                    </small>
+                  </div>
+
+                  <div class="alert alert-danger mb-3" role="alert">
+                    <small>
+                      <strong>📋 新規大会で初期化</strong><br>
+                      <strong>別の大会・別のチーム</strong>で試合を開始する場合に使用します。<br>
+                      <code>config/init_data.json</code> から大会設定を読み込み、すべてをリセットします。<br>
+                      リセットされる内容: <strong>大会名、チーム名</strong>、イニング、得点、BSO、出塁者
+                    </small>
+                  </div>
+
+                  <p class="mb-2"><strong>使い方:</strong></p>
+                  <ol class="mb-3">
+                    <li>攻守交代・出塁カードの該当ボタンを押す。</li>
+                    <li>確認ダイアログが表示されるので、内容を確認して <strong>「OK」</strong> を押す。</li>
+                    <li>試合状況がリセットされる。</li>
+                  </ol>
+
+                  <div class="alert alert-warning mb-0" role="alert">
                     <small>
                       <strong>⚠️ 注意事項</strong><br>
                       試合中でも初期化ボタンは押せますが、確認ダイアログで警告メッセージが表示されます。<br>

@@ -20,7 +20,10 @@ let currentGameState = null;
 // Master/Slave client management
 const clients = new Map(); // Map<clientId, {ws, type, role, connectedAt}>
 let masterClientId = null;
+let masterToken = null; // Current valid master token
+let masterTokenGracePeriod = null; // {token, expiresAt} for reload grace period
 let clientIdCounter = 0;
+const RELOAD_GRACE_PERIOD_MS = 5000; // 5 seconds grace period for reload
 
 /**
  * Load game state from file
@@ -69,6 +72,14 @@ function generateClientId() {
 }
 
 /**
+ * Generate unique master token (UUID-like)
+ * @returns {string} Unique master token
+ */
+function generateMasterToken() {
+  return `master_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
  * Send JSON message to WebSocket client
  * @param {WebSocket} ws - The WebSocket connection
  * @param {object} message - The message object to send
@@ -94,11 +105,16 @@ function broadcastToClients(message, filter = null) {
 /**
  * Promote the oldest slave to master
  * @param {string} reason - Reason for promotion ('master_disconnected' or 'master_released')
+ * @param {string|null} excludeId - Client ID to exclude from promotion candidates
  * @returns {boolean} True if a slave was promoted
  */
-function promoteNextMaster(reason = 'master_disconnected') {
+function promoteNextMaster(reason = 'master_disconnected', excludeId = null) {
   const slaves = Array.from(clients.entries())
-    .filter(([id, client]) => client.type === 'operation' && client.role === 'slave')
+    .filter(([id, client]) =>
+      id !== excludeId &&
+      client.type === 'operation' &&
+      client.role === 'slave'
+    )
     .sort((a, b) => a[1].connectedAt - b[1].connectedAt);
 
   if (slaves.length > 0) {
@@ -106,10 +122,15 @@ function promoteNextMaster(reason = 'master_disconnected') {
     masterClientId = newMasterId;
     newMasterClient.role = 'master';
 
+    // Generate new master token
+    masterToken = generateMasterToken();
+    logger.log(`Generated new master token: ${masterToken}`);
+
     // Notify the new master
     sendMessage(newMasterClient.ws, {
       type: 'role_changed',
       newRole: 'master',
+      masterToken: masterToken,
       reason: reason
     });
 
@@ -215,18 +236,49 @@ wss.on("connection", (ws) => {
         clearTimeout(handshakeTimeout);
 
         const clientType = data.client_type || 'board';
+        const providedToken = data.masterToken;
         let role = 'viewer';
+        let tokenToSend = null;
 
         // If already registered (e.g., by timeout), update the client info
         const isUpdate = clientInfo !== null;
 
         if (clientType === 'operation') {
-          // Determine if master or slave
-          if (!masterClientId) {
+          // Check if client has a valid master token
+          const isValidToken = providedToken && providedToken === masterToken;
+          const isGracePeriodToken = providedToken &&
+            masterTokenGracePeriod &&
+            providedToken === masterTokenGracePeriod.token &&
+            Date.now() < masterTokenGracePeriod.expiresAt;
+
+          if (isValidToken) {
+            // Valid current token - restore as master
             role = 'master';
             masterClientId = clientId;
+            tokenToSend = masterToken; // Send back the same token
+            logger.log(`Client ${clientId} verified as MASTER (valid token)`);
+          } else if (isGracePeriodToken) {
+            // Valid token within grace period (reload scenario) - restore as master
+            role = 'master';
+            masterClientId = clientId;
+            masterToken = providedToken; // Restore the token
+            tokenToSend = masterToken;
+            masterTokenGracePeriod = null; // Clear grace period
+            logger.log(`Client ${clientId} verified as MASTER (grace period token, likely reload)`);
+          } else if (providedToken) {
+            // Invalid token - log and assign as slave
+            logger.log(`Client ${clientId} provided invalid token, assigning as SLAVE`);
+            role = 'slave';
+          } else if (!masterClientId) {
+            // No token provided, no existing master - assign as new master
+            role = 'master';
+            masterClientId = clientId;
+            masterToken = generateMasterToken();
+            tokenToSend = masterToken;
             logger.log(`Client ${clientId} assigned as MASTER (no existing master)`);
+            logger.log(`Generated new master token: ${masterToken}`);
           } else {
+            // No token provided, master exists - assign as slave
             role = 'slave';
             logger.log(`Client ${clientId} assigned as SLAVE (master exists: ${masterClientId})`);
           }
@@ -241,12 +293,16 @@ wss.on("connection", (ws) => {
         clients.set(clientId, clientInfo);
 
         // Send role assignment
-        sendMessage(ws, {
+        const assignmentMessage = {
           type: 'role_assignment',
           role,
           clientId,
           masterClientId
-        });
+        };
+        if (tokenToSend) {
+          assignmentMessage.masterToken = tokenToSend;
+        }
+        sendMessage(ws, assignmentMessage);
 
         // Send current game state
         if (currentGameState) {
@@ -263,16 +319,22 @@ wss.on("connection", (ws) => {
       // Handle master release request
       if (data.type === 'release_master' && clientInfo?.role === 'master') {
         logger.log(`Master ${clientId} released control`);
+
+        // Invalidate current master token
+        masterToken = null;
+        logger.log(`Master token invalidated`);
+
         masterClientId = null;
         clientInfo.role = 'slave';
 
-        // Promote next master with correct reason
-        promoteNextMaster('master_released');
+        // Promote next master, excluding the former master
+        promoteNextMaster('master_released', clientId);
 
         // Notify the former master of their new role
         sendMessage(ws, {
           type: 'role_changed',
           newRole: 'slave',
+          clearToken: true,
           reason: 'master_released'
         });
         return;
@@ -310,9 +372,26 @@ wss.on("connection", (ws) => {
     clients.delete(clientId);
 
     if (wasMaster) {
-      logger.log(`Master disconnected, clearing masterClientId and promoting next slave`);
+      logger.log(`Master disconnected, setting grace period for token (${RELOAD_GRACE_PERIOD_MS}ms)`);
+
+      // Set grace period for the token to allow reload
+      masterTokenGracePeriod = {
+        token: masterToken,
+        expiresAt: Date.now() + RELOAD_GRACE_PERIOD_MS
+      };
+
       masterClientId = null;
-      promoteNextMaster('master_disconnected');
+      masterToken = null; // Clear current token (but keep grace period)
+
+      // Schedule automatic promotion after grace period
+      setTimeout(() => {
+        // Only promote if no master reconnected during grace period
+        if (!masterClientId && masterTokenGracePeriod) {
+          logger.log(`Grace period expired, promoting next slave`);
+          masterTokenGracePeriod = null; // Clear grace period
+          promoteNextMaster('master_disconnected');
+        }
+      }, RELOAD_GRACE_PERIOD_MS);
     }
   });
 

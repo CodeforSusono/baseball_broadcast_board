@@ -103,7 +103,7 @@ const scoreboardComponent = {
             x="40.922894"
             y="53.910057">: {{ boardData.score_bottom < 10 ? ' ' + boardData.score_bottom : boardData.score_bottom }}</tspan></text>
         <path v-if="boardData.first_base"
-          style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
+          style="fill:#ffff00;fill-opacity:1;stroke-width:0.264583"
           d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
           transform="matrix(0.42521287,0,0,0.15945483,37.195423,23.713337)" />
         <path v-else
@@ -111,7 +111,7 @@ const scoreboardComponent = {
           d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
           transform="matrix(0.42521287,0,0,0.15945483,37.195423,23.713337)" />
         <path v-if="boardData.second_base"
-          style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
+          style="fill:#ffff00;fill-opacity:1;stroke-width:0.264583"
           d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
           transform="matrix(0.42521287,0,0,0.15945483,31.304235,21.013711)" />
         <path v-else
@@ -119,7 +119,7 @@ const scoreboardComponent = {
           d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
           transform="matrix(0.42521287,0,0,0.15945483,31.304235,21.013711)" />
         <path v-if="boardData.third_base"
-          style="fill:#cdcd00;fill-opacity:1;stroke-width:0.264583"
+          style="fill:#ffff00;fill-opacity:1;stroke-width:0.264583"
           d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
           transform="matrix(0.42521287,0,0,0.15945483,25.041017,23.713336)" />
         <path v-else
@@ -140,15 +140,15 @@ const scoreboardComponent = {
             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.88056px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold';fill:#e5e5e8;fill-opacity:1;stroke-width:0.264583"
             x="51.422126"
             y="54.581738">O</tspan></text>
-        <circle v-show="boardData.strike_cnt >= 1" style="fill:#cdcd00;fill-opacity:1;stroke-width:0.198438" cx="57.413261" cy="48.554428" r="1.5" />
-        <circle v-show="boardData.strike_cnt === 2" style="fill:#cdcd00;fill-opacity:1;stroke-width:0.198438" cx="61.810734" cy="48.554428" r="1.5" />
-        <circle v-show="boardData.ball_cnt >= 1" style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438" cx="57.413261" cy="43.30896" r="1.5" />
-        <circle v-show="boardData.ball_cnt >= 2" style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438" cx="61.810734" cy="43.30896" r="1.5" />
-        <circle v-show="boardData.ball_cnt === 3" style="fill:#01aa01;fill-opacity:1;stroke-width:0.198438" cx="66.469948" cy="43.30896" r="1.5" />
-        <circle v-show="boardData.out_cnt >= 1" style="fill:#9e0000;fill-opacity:1;stroke-width:0.198438" cx="57.413261" cy="53.494202" r="1.5" />
-        <circle v-show="boardData.out_cnt === 2" style="fill:#9e0000;fill-opacity:1;stroke-width:0.198438" cx="61.810734" cy="53.494202" r="1.5" />
+        <circle v-show="boardData.strike_cnt >= 1" style="fill:#ffff00;fill-opacity:1;stroke-width:0.198438" cx="57.413261" cy="48.554428" r="1.5" />
+        <circle v-show="boardData.strike_cnt === 2" style="fill:#ffff00;fill-opacity:1;stroke-width:0.198438" cx="61.810734" cy="48.554428" r="1.5" />
+        <circle v-show="boardData.ball_cnt >= 1" style="fill:#00ff00;fill-opacity:1;stroke-width:0.198438" cx="57.413261" cy="43.30896" r="1.5" />
+        <circle v-show="boardData.ball_cnt >= 2" style="fill:#00ff00;fill-opacity:1;stroke-width:0.198438" cx="61.810734" cy="43.30896" r="1.5" />
+        <circle v-show="boardData.ball_cnt === 3" style="fill:#00ff00;fill-opacity:1;stroke-width:0.198438" cx="66.469948" cy="43.30896" r="1.5" />
+        <circle v-show="boardData.out_cnt >= 1" style="fill:#ff0000;fill-opacity:1;stroke-width:0.198438" cx="57.413261" cy="53.494202" r="1.5" />
+        <circle v-show="boardData.out_cnt === 2" style="fill:#ff0000;fill-opacity:1;stroke-width:0.198438" cx="61.810734" cy="53.494202" r="1.5" />
         <rect v-show="isPlaying"
-          style="fill:#01aa01;fill-opacity:1;stroke-width:0.172333"
+          style="fill:#00ff00;fill-opacity:1;stroke-width:0.172333"
           width="1"
           height="7"
           x="21.041811"

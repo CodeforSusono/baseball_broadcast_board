@@ -124,11 +124,22 @@ const app = Vue.createApp({
       this.connectionStatus = 'connected';
       this.reconnectAttempts = 0;
 
+      // Get stored master token from sessionStorage
+      const storedToken = sessionStorage.getItem('masterToken');
+
       // Send handshake to identify as operation client
-      this.socket.send(JSON.stringify({
+      const handshakeMessage = {
         type: 'handshake',
         client_type: 'operation'
-      }));
+      };
+
+      // Include token if available
+      if (storedToken) {
+        handshakeMessage.masterToken = storedToken;
+        console.log('Sending handshake with stored master token');
+      }
+
+      this.socket.send(JSON.stringify(handshakeMessage));
     },
 
     handleWebSocketMessage(event) {
@@ -140,6 +151,13 @@ const app = Vue.createApp({
           this.clientRole = message.role;
           this.clientId = message.clientId;
           this.masterClientId = message.masterClientId;
+
+          // Store master token if provided
+          if (message.role === 'master' && message.masterToken) {
+            sessionStorage.setItem('masterToken', message.masterToken);
+            console.log('Master token saved to sessionStorage');
+          }
+
           console.log(`Assigned role: ${message.role}`);
           return;
         }
@@ -147,6 +165,19 @@ const app = Vue.createApp({
         // Handle role change
         if (message.type === 'role_changed') {
           this.clientRole = message.newRole;
+
+          // Save new master token if provided
+          if (message.newRole === 'master' && message.masterToken) {
+            sessionStorage.setItem('masterToken', message.masterToken);
+            console.log('Master token saved to sessionStorage');
+          }
+
+          // Clear token if instructed
+          if (message.clearToken) {
+            sessionStorage.removeItem('masterToken');
+            console.log('Master token removed from sessionStorage');
+          }
+
           console.log(`Role changed to: ${message.newRole} (reason: ${message.reason})`);
           return;
         }
@@ -388,6 +419,10 @@ const app = Vue.createApp({
         this.socket.send(JSON.stringify({
           type: 'release_master'
         }));
+
+        // Clear token from sessionStorage (server will also send clearToken in role_changed)
+        sessionStorage.removeItem('masterToken');
+        console.log('Master token removed from sessionStorage (manual release)');
       }
     },
     loadFromInitData: function () {

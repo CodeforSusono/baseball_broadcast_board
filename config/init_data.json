@@ -1,7 +1,7 @@
 {
-  "game_title": "春季リーグ戦",
-  "team_top": "東京D",
-  "team_bottom": "横浜S",
+  "game_title": "第22回 DREAM-CUP",
+  "team_top": "静岡D",
+  "team_bottom": "横浜M",
   "game_array": [
     "試合前",
     1,
@@ -17,9 +17,11 @@
   ],
   "team_items": [
     "　",
-    "東京D",
-    "横浜S",
-    "大阪T"
+    "静岡D",
+    "横浜M",
+    "Ｒ.Ｓ.",
+    "東京G",
+    "静翔中等"
   ],
   "last_inning": 9
 }

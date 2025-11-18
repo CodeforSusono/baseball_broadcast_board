@@ -408,6 +408,11 @@ const app = Vue.createApp({
       this.score_bottom = 0;      // Reset bottom team score
       this.initParams();          // Reset BSO and runners
     },
+    endGame: function () {
+      // Set game_inning to last_inning + 1 to display "試合終了"
+      this.game_inning = this.last_inning + 1;
+      this.initParams();
+    },
     releaseMasterControl: function () {
       if (this.clientRole !== 'master') return;
 

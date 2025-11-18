@@ -216,21 +216,7 @@
           </p>
         </div>
 
-        <!-- 上段: プレビュー -->
-        <div class="row mb-4">
-          <div class="col">
-            <div class="card">
-              <div class="card-header h5">リアルタイムプレビュー</div>
-              <div class="card-body d-flex justify-content-center">
-                <div style="transform: scale(0.8);">
-                  <scoreboard :board-data="boardData" :powered-by-class="'powered-by-black'"></scoreboard>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 下段: 操作パネル -->
+        <!-- 操作パネル -->
         <div class="row g-4">
           <!-- 左列 -->
           <div class="col-lg-8">
@@ -274,27 +260,27 @@
               <div class="card-header h5">BSO カウント</div>
               <div class="card-body">
                 <div class="row align-items-center text-center mb-3">
-                  <div class="col-4 h5">B: {{ ball_cnt }}</div>
-                  <div class="col-4 h5">S: {{ strike_cnt }}</div>
-                  <div class="col-4 h5">O: {{ out_cnt }}</div>
+                  <div class="col-4">Ball: {{ ball_cnt }}</div>
+                  <div class="col-4">Strike: {{ strike_cnt }}</div>
+                  <div class="col-4">Out: {{ out_cnt }}</div>
                 </div>
                 <div class="row text-center">
                   <div class="col-4">
                     <div class="btn-group">
-                      <button class="btn btn-outline-secondary" @click="ballCountDown" :disabled="isOperationDisabled">-</button>
-                      <button class="btn btn-outline-primary" @click="ballCountUp" :disabled="isOperationDisabled">+</button>
+                      <button class="btn btn-outline-secondary" @click="ballCountDown" :disabled="isOperationDisabled">ー</button>
+                      <button class="btn btn-outline-primary" @click="ballCountUp" :disabled="isOperationDisabled">＋</button>
                     </div>
                   </div>
                   <div class="col-4">
                     <div class="btn-group">
-                      <button class="btn btn-outline-secondary" @click="strikeCountDown" :disabled="isOperationDisabled">-</button>
-                      <button class="btn btn-outline-danger" @click="strikeCountUp" :disabled="isOperationDisabled">+</button>
+                      <button class="btn btn-outline-secondary" @click="strikeCountDown" :disabled="isOperationDisabled">ー</button>
+                      <button class="btn btn-outline-danger" @click="strikeCountUp" :disabled="isOperationDisabled">＋</button>
                     </div>
                   </div>
                   <div class="col-4">
                     <div class="btn-group">
-                      <button class="btn btn-outline-secondary" @click="outCountDown" :disabled="isOperationDisabled">-</button>
-                      <button class="btn btn-outline-danger" @click="outCountUp" :disabled="isOperationDisabled">+</button>
+                      <button class="btn btn-outline-secondary" @click="outCountDown" :disabled="isOperationDisabled">ー</button>
+                      <button class="btn btn-outline-danger" @click="outCountUp" :disabled="isOperationDisabled">＋</button>
                     </div>
                   </div>
                 </div>
@@ -305,6 +291,98 @@
                     <button class="btn btn-warning" @click="resetBS" :disabled="isOperationDisabled">BSリセット</button>
                   </div>
                   <div class="col-4"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- スコアカード -->
+            <div class="card mb-4">
+              <div class="card-header h5">スコア</div>
+              <div class="card-body text-center">
+                <!-- 先攻 -->
+                <div class="row align-items-center mb-2 g-1">
+                  <div class="col-3"></div>
+                  <div class="col-2">{{ team_top }}</div>
+                  <div class="col-2 mb-0">{{ score_top }}</div>
+                  <div class="col-2">
+                    <div class="btn-group">
+                      <button class="btn btn-outline-secondary" @click="decrementScoreTop" :disabled="isOperationDisabled">ー</button>
+                      <button class="btn btn-outline-primary" @click="incrementScoreTop" :disabled="isOperationDisabled">＋</button>
+                    </div>
+                  </div>
+                  <div class="col-3"></div>
+                </div>
+                <!-- 後攻 -->
+                <div class="row align-items-center g-1">
+                  <div class="col-3"></div>
+                  <div class="col-2">{{ team_bottom }}</div>
+                  <div class="col-2 mb-0">{{ score_bottom }}</div>
+                  <div class="col-2">
+                    <div class="btn-group">
+                      <button class="btn btn-outline-secondary" @click="decrementScoreBottom" :disabled="isOperationDisabled">ー</button>
+                      <button class="btn btn-outline-primary" @click="incrementScoreBottom" :disabled="isOperationDisabled">＋</button>
+                    </div>
+                  </div>
+                  <div class="col-3"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 初期化カード -->
+            <div class="card mb-4">
+              <div class="card-header h5">初期化</div>
+              <div class="card-footer">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <!-- 試合初期化ボタン -->
+                    <button class="btn btn-danger w-100" @click="resetGame" :disabled="isOperationDisabled">
+                      🔄 試合初期化
+                    </button>
+                  </div>
+                  <div class="col-12">
+                    <!-- 新規大会で初期化ボタン -->
+                    <button class="btn btn-danger w-100" @click="loadFromInitData" :disabled="isOperationDisabled">
+                      📋 新規大会で初期化
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右列 -->
+          <div class="col-lg-4">
+            <!-- リアルタイムプレビュー -->
+            <div class="card mb-4">
+              <div class="card-header h5">リアルタイムプレビュー</div>
+              <div class="card-body d-flex flex-column align-items-center">
+                <scoreboard :board-data="boardData" :powered-by-class="'powered-by-black'"></scoreboard>
+              </div>
+            </div>
+
+            <!-- イニング・攻撃カード -->
+            <div class="card mb-4">
+              <div class="card-header h5">攻守交代・出塁</div>
+              <div class="card-body text-center">
+                <div class="mb-3">{{ inningMsg() }}</div>
+                <div class="btn-group mb-4">
+                  <button class="btn btn-outline-secondary" @click="gameBackward" :disabled="isOperationDisabled">&laquo; 戻る</button>
+                  <button class="btn btn-outline-secondary" @click="gameForward" :disabled="isOperationDisabled">進む &raquo;</button>
+                </div>
+                <!-- ランナー -->
+                <div class="position-relative mx-auto" style="width: 150px; height: 100px;">
+                  <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']" :disabled="isOperationDisabled">2B</button>
+                  <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']" :disabled="isOperationDisabled">3B</button>
+                  <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']" :disabled="isOperationDisabled">1B</button>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="row">
+                  <div class="col-12 text-center">
+                    <button class="btn btn-warning w-100" @click="endGame" :disabled="isOperationDisabled">
+                      🏁 試合終了
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -326,72 +404,6 @@
                     <button class="btn btn-warning" @click="releaseMasterControl">
                       🔓 マスター権限を解放
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 右列 -->
-          <div class="col-lg-4">
-            <!-- イニング・攻撃カード -->
-            <div class="card mb-4">
-              <div class="card-header h5">攻守交代・出塁</div>
-              <div class="card-body text-center">
-                <div class="h4 mb-3">{{ inningMsg() }}</div>
-                <div class="btn-group mb-4">
-                  <button class="btn btn-outline-secondary" @click="gameBackward" :disabled="isOperationDisabled">&laquo; 戻る</button>
-                  <button class="btn btn-outline-secondary" @click="gameForward" :disabled="isOperationDisabled">進む &raquo;</button>
-                </div>
-                <!-- ランナー -->
-                <div class="position-relative mx-auto" style="width: 150px; height: 100px;">
-                  <button @click="second_base = !second_base" :class="['btn', second_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-0', 'start-50', 'translate-middle-x']" :disabled="isOperationDisabled">2B</button>
-                  <button @click="third_base = !third_base" :class="['btn', third_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'start-0', 'translate-middle-y']" :disabled="isOperationDisabled">3B</button>
-                  <button @click="first_base = !first_base" :class="['btn', first_base ? 'btn-primary' : 'btn-outline-secondary', 'position-absolute', 'top-50', 'end-0', 'translate-middle-y']" :disabled="isOperationDisabled">1B</button>
-                </div>
-              </div>
-              <div class="card-footer">
-                <div class="row g-2">
-                  <div class="col-12">
-                    <!-- 試合初期化ボタン -->
-                    <button class="btn btn-danger w-100" @click="resetGame" :disabled="isOperationDisabled">
-                      🔄 試合初期化
-                    </button>
-                  </div>
-                  <div class="col-12">
-                    <!-- 新規大会で初期化ボタン -->
-                    <button class="btn btn-danger w-100" @click="loadFromInitData" :disabled="isOperationDisabled">
-                      📋 新規大会で初期化
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- スコアカード -->
-            <div class="card mb-4">
-              <div class="card-header h5">スコア</div>
-              <div class="card-body">
-                <!-- 先攻 -->
-                <div class="row align-items-center mb-3">
-                  <div class="col-5">{{ team_top }}</div>
-                  <div class="col-3 h4 text-center mb-0">{{ score_top }}</div>
-                  <div class="col-4">
-                    <div class="btn-group">
-                      <button class="btn btn-sm btn-outline-secondary" @click="decrementScoreTop" :disabled="isOperationDisabled">-</button>
-                      <button class="btn btn-sm btn-outline-primary" @click="incrementScoreTop" :disabled="isOperationDisabled">+</button>
-                    </div>
-                  </div>
-                </div>
-                <!-- 後攻 -->
-                <div class="row align-items-center">
-                  <div class="col-5">{{ team_bottom }}</div>
-                  <div class="col-3 h4 text-center mb-0">{{ score_bottom }}</div>
-                  <div class="col-4">
-                    <div class="btn-group">
-                      <button class="btn btn-sm btn-outline-secondary" @click="decrementScoreBottom" :disabled="isOperationDisabled">-</button>
-                      <button class="btn btn-sm btn-outline-primary" @click="incrementScoreBottom" :disabled="isOperationDisabled">+</button>
-                    </div>
                   </div>
                 </div>
               </div>

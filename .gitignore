@@ -29,6 +29,11 @@ yarn-error.log*
 *.njsproj
 *.sln
 
+# IDE and tooling
+.mcp.json
+.serena/
+.claude/
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -45,3 +50,12 @@ CLAUDE.md
 prompt*.txt
 config/init_data.json.bak
 config/my-config.yaml
+
+# Electron build output
+/dist
+/out
+
+# Electron test files
+test-*.js
+main-minimal.js
+/test-app

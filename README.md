@@ -7,6 +7,7 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 ## 📑 目次
 
 - [主な機能](#主な機能)
+- [Electron版について](#electron版について)
 - [クイックスタート](#クイックスタート)
 - [システム構成](#システム構成)
 - [主要ファイル構成](#主要ファイル構成)
@@ -28,6 +29,55 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 - **OBS 連携**: 表示ボードは背景が緑色になっており、OBS などの配信ソフトウェアで簡単にクロマキー合成できます。
 - **マルチPC対応**: サーバーのIPアドレスを指定することで、別のPCから操作パネルと表示ボードにアクセス可能です。
 - **設定自動生成**: コマンドラインツールで`init_data.json`を簡単に生成できます（インタラクティブモード、YAML、コマンドライン引数の3つの方法に対応）。
+
+## 🖥️ Electron版について
+
+**現在のステータス: 開発中** 🚧
+
+このプロジェクトはElectronデスクトップアプリケーション化を進めています。
+
+### 実装済み機能
+
+- ✅ Electron基本設定（`package.json`, `main.js`, `preload.js`）
+- ✅ 自動サーバー起動機能
+- ✅ メニューバー統合
+- ✅ システムトレイアイコン
+- ✅ ビルド設定（Windows/Mac/Linux対応）
+
+### 既知の問題
+
+⚠️ **Electron起動時のエラー**
+
+一部のLinux環境で`require('electron')`が正しく動作しない問題が確認されています。
+
+```
+TypeError: Cannot read properties of undefined (reading 'whenReady')
+```
+
+**回避策**:
+- **Web版を使用**: 現在は従来通り`node server.js`でWebアプリとして使用できます
+- **別の環境で試行**: Windows/macOSでは正常に動作する可能性があります
+- **システムライブラリ確認**: 必要なシステムライブラリがインストールされているか確認してください
+
+### Electron版の使用方法（環境が対応している場合）
+
+```bash
+# Electron開発モード
+npm run electron:dev
+
+# Electronビルド（実行ファイル生成）
+npm run build        # すべてのプラットフォーム
+npm run build:win    # Windows
+npm run build:mac    # macOS
+npm run build:linux  # Linux
+```
+
+**今後の予定**:
+- 設定画面のGUI実装
+- YAMLファイル読み込み機能
+- パッケージング最適化
+
+詳細は [GitHub Issues](https://github.com/aktnk/electron_bbb/issues) をご確認ください。
 
 ## 🚀 クイックスタート
 
@@ -129,8 +179,16 @@ graph LR;
 │   ├── pm2-error.log       # PM2エラーログ（自動生成）
 │   └── pm2-out.log         # PM2標準出力ログ（自動生成）
 ├── ecosystem.config.js     # PM2設定ファイル
+├── main.js                 # Electronメインプロセス（開発中）
+├── preload.js              # Electron preloadスクリプト（開発中）
 ├── server.js               # WebサーバーとWebSocketサーバー
 └── package.json            # プロジェクト情報と依存ライブラリ
+```
+
+**Electron関連ファイル（開発中）**:
+- `main.js`: Electronのメインプロセス。サーバー自動起動、ウィンドウ管理、メニュー統合
+- `preload.js`: セキュアなIPC通信のためのプリロードスクリプト
+- `package.json`: Electron起動スクリプト（`npm run electron:dev`）とビルド設定を含む
 ```
 
 ## 技術スタック
@@ -143,6 +201,9 @@ graph LR;
   - Node.js
   - ws (WebSocket ライブラリ)
   - js-yaml (YAML パーサー)
+- **デスクトップ化（開発中）**:
+  - Electron 25.9.8
+  - electron-builder 25.1.8
 
 ## セットアップと実行方法
 

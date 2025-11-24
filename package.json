@@ -51,6 +51,12 @@
       "scripts/**/*",
       "node_modules/**/*"
     ],
+    "asarUnpack": [
+      "server.js",
+      "public/**/*",
+      "config/**/*",
+      "node_modules/**/*"
+    ],
     "directories": {
       "output": "dist"
     },

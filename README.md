@@ -32,52 +32,75 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 
 ## 🖥️ Electron版について
 
-**現在のステータス: 開発中** 🚧
+**現在のステータス: Linuxで動作確認済み** ✅
 
-このプロジェクトはElectronデスクトップアプリケーション化を進めています。
+このプロジェクトのElectronデスクトップアプリケーション版が利用可能です。
 
 ### 実装済み機能
 
 - ✅ Electron基本設定（`package.json`, `main.js`, `preload.js`）
-- ✅ 自動サーバー起動機能
+- ✅ 自動サーバー起動機能（Electronプロセス内でNode.jsサーバーを起動）
 - ✅ メニューバー統合
 - ✅ システムトレイアイコン
 - ✅ ビルド設定（Windows/Mac/Linux対応）
+- ✅ AppImage形式でのLinuxビルド（動作確認済み）
+- ✅ ファイルパス解決（asar対応、ユーザーデータディレクトリへの状態保存）
 
-### 既知の問題
+### Electron版の使用方法
 
-⚠️ **Electron起動時のエラー**
+#### Linux（AppImage）
 
-一部のLinux環境で`require('electron')`が正しく動作しない問題が確認されています。
+Linuxでは、単一のAppImageファイルとして実行できます：
+
+```bash
+# ビルド
+npm run build:linux
+
+# 実行（Ubuntu 24.04+の場合）
+# libfuse2が必要です
+sudo apt install libfuse2
+
+# AppImageを実行（サンドボックス無効化が必要）
+./dist/Baseball\ Scoreboard-1.0.0.AppImage --no-sandbox
+```
+
+**⚠️ 注意点:**
+- **サンドボックス**: `--no-sandbox` オプションが必要です（chrome-sandboxの権限問題を回避）
+- **FUSE2**: Ubuntu 24.04以降ではデフォルトでFUSE3がインストールされているため、FUSE2を追加インストールする必要があります
+- **データ保存場所**: 試合状況は `~/.config/baseball_broadcast_board/data/current_game.json` に保存されます
+
+#### Windows / macOS
+
+```bash
+# Windowsビルド
+npm run build:win
+
+# macOSビルド
+npm run build:mac
+```
+
+### Electron開発モード
+
+⚠️ **既知の問題**: 一部のLinux環境で開発モード（`npm run electron:dev`）が動作しない問題があります。
 
 ```
 TypeError: Cannot read properties of undefined (reading 'whenReady')
 ```
 
-**回避策**:
-- **Web版を使用**: 現在は従来通り`node server.js`でWebアプリとして使用できます
-- **別の環境で試行**: Windows/macOSでは正常に動作する可能性があります
-- **システムライブラリ確認**: 必要なシステムライブラリがインストールされているか確認してください
+この問題は、AppImageビルド版では発生しません。開発時は以下の回避策を使用してください：
+- Web版を使用: `node server.js`
+- 別の環境で試行: Windows/macOSでは正常に動作する可能性があります
 
-### Electron版の使用方法（環境が対応している場合）
+### 技術的な実装詳細
 
-```bash
-# Electron開発モード
-npm run electron:dev
+Electron版では、以下の技術的な課題を解決しています：
 
-# Electronビルド（実行ファイル生成）
-npm run build        # すべてのプラットフォーム
-npm run build:win    # Windows
-npm run build:mac    # macOS
-npm run build:linux  # Linux
-```
+1. **asarアーカイブ対応**: `server.js`、`public/`、`config/`、`node_modules/` を `app.asar.unpacked` に展開して実行
+2. **ファイルパス解決**: `__dirname` ベースのパス解決により、開発環境とパッケージ環境の両方で動作
+3. **書き込み可能データ**: 試合状況データを `app.getPath('userData')` に保存し、AppImage実行時の読み取り専用制約を回避
+4. **サーバープロセス管理**: Electronのメインプロセスから `spawn` でNode.jsサーバーを起動し、アプリ終了時に自動的にクリーンアップ
 
-**今後の予定**:
-- 設定画面のGUI実装
-- YAMLファイル読み込み機能
-- パッケージング最適化
-
-詳細は [GitHub Issues](https://github.com/aktnk/electron_bbb/issues) をご確認ください。
+詳細は [CLAUDE.md](CLAUDE.md) の「Deployment Options」および「Electron Desktop App」セクションをご覧ください。
 
 ## 🚀 クイックスタート
 

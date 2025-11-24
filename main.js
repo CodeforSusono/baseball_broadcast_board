@@ -79,10 +79,41 @@ async function startServer() {
 
   // Start server process
   console.log('Starting server on port', SERVER_PORT);
-  serverProcess = spawn('node', ['server.js'], {
-    cwd: __dirname,
-    env: { ...process.env, NODE_ENV: 'production' },
-    stdio: isDev ? 'inherit' : 'ignore'
+
+  // Resolve server.js path - handle both development and packaged app
+  // In production (packaged app), use app.asar.unpacked directory
+  let serverPath;
+  if (isDev) {
+    serverPath = path.join(__dirname, 'server.js');
+  } else {
+    // In packaged app, files in asarUnpack are placed in app.asar.unpacked
+    serverPath = path.join(__dirname.replace('app.asar', 'app.asar.unpacked'), 'server.js');
+  }
+
+  if (isDev) {
+    console.log('Server path:', serverPath);
+    console.log('__dirname:', __dirname);
+    console.log('process.execPath:', process.execPath);
+  }
+
+  // Use process.execPath (electron) to run the server script
+  serverProcess = spawn(process.execPath, [serverPath], {
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      ELECTRON_RUN_AS_NODE: '1', // Run as Node.js, not Electron
+      USER_DATA_PATH: app.getPath('userData') // Pass userData path for writable data
+    },
+    stdio: ['ignore', 'pipe', 'pipe'] // Capture stdout and stderr for debugging
+  });
+
+  // Log server output for debugging
+  serverProcess.stdout.on('data', (data) => {
+    console.log('[Server stdout]:', data.toString());
+  });
+
+  serverProcess.stderr.on('data', (data) => {
+    console.error('[Server stderr]:', data.toString());
   });
 
   serverProcess.on('error', (error) => {

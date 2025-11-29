@@ -327,6 +327,119 @@ loadConfiguration(forceReload = false) {
 }
 ```
 
+### 7. Phase 5: 初回起動ガイド
+
+**初回起動時の自動セットアップ支援**:
+
+Electronアプリを初めて起動すると、設定ウィンドウとウェルカムダイアログが自動的に表示され、初期設定をガイドします。
+
+**初回起動時の動作**:
+
+1. **設定ウィンドウが自動的に開く**
+   - `createSettingsWindow()` が自動的に呼び出されます
+   - `show: false` + `ready-to-show` イベントパターンでコンテンツ読み込み後に表示
+   - `focus()` で確実に前面に表示
+
+2. **ウェルカムダイアログが表示される**（1.5秒遅延）
+   - 推奨ワークフローを5ステップで案内
+   - 設定ウィンドウのUI要素（絵文字付きボタン）を参照
+   - 日本語で表示（アプリUIと統一）
+
+3. **操作パネルも同時に開く**
+   - 設定完了後にすぐ使用できるよう背景で起動
+   - 設定ウィンドウがフォーカスを持つ
+
+**実装詳細**:
+
+```javascript
+// main.js - 初回起動検出
+function isFirstRun() {
+  const userDataPath = app.getPath('userData');
+  const firstRunMarker = path.join(userDataPath, '.first_run_complete');
+  return !fs.existsSync(firstRunMarker);
+}
+
+// main.js - マーカーファイル作成
+function markFirstRunComplete() {
+  const userDataPath = app.getPath('userData');
+  const firstRunMarker = path.join(userDataPath, '.first_run_complete');
+
+  if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  }
+
+  const timestamp = new Date().toISOString();
+  fs.writeFileSync(firstRunMarker, `First run completed: ${timestamp}\n`);
+}
+
+// main.js - アプリ起動フロー
+app.whenReady().then(async () => {
+  await startServer();
+  createMenu();
+  createTray();
+
+  const firstRun = isFirstRun();
+
+  if (firstRun) {
+    console.log('First run detected, showing welcome dialog and settings');
+
+    // 設定ウィンドウを開く
+    createSettingsWindow();
+
+    // ウェルカムダイアログを表示（1.5秒遅延）
+    setTimeout(() => {
+      showWelcomeDialog();
+      markFirstRunComplete();
+    }, 1500);
+  }
+
+  // 操作パネルを開く
+  createOperationWindow();
+});
+```
+
+**ウェルカムダイアログの内容**:
+
+```
+タイトル: Baseball Scoreboard へようこそ
+メッセージ: 初めてご利用いただきありがとうございます!
+
+詳細:
+設定ウィンドウが開きます。以下の手順で大会情報を設定してください。
+
+【推奨ワークフロー】
+1. YAMLファイルを選択（または新規作成）
+2. 「✅ 設定ファイルを生成」をクリック
+3. 「🗑️ 試合状態を削除」をクリック（確認ダイアログで自動提案）
+4. 「🔄 設定を再読み込み」をクリック（確認ダイアログで自動提案）
+5. 操作パネルで試合を開始
+
+ヘルプ: 設定ウィンドウ下部にYAMLファイルの例があります。
+```
+
+**マーカーファイル**:
+```
+保存場所: ~/.config/baseball_broadcast_board/.first_run_complete
+形式: テキストファイル（タイムスタンプ付き）
+例: "First run completed: 2025-11-30T12:34:56.789Z"
+```
+
+**2回目以降の起動**:
+- マーカーファイルが存在するため、初回起動フローはスキップされます
+- 操作パネルのみが起動します（通常の動作）
+
+**手動リセット**:
+```bash
+# 初回起動フローを再度実行したい場合
+rm ~/.config/baseball_broadcast_board/.first_run_complete
+```
+
+**設計上の利点**:
+- **シンプル**: ファイルの存在チェックのみ（JSONパース不要）
+- **高速**: ディスク読み込みは最小限
+- **デバッグ可能**: タイムスタンプ記録で初回起動日時を確認可能
+- **Unix慣習**: ドットプレフィックスで隠しファイル化
+
 ## 開発モードの既知の問題
 
 ### Linux: `npm run electron:dev`の失敗

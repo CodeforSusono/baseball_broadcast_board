@@ -191,6 +191,7 @@ function createSettingsWindow() {
     height: 700,
     title: 'Baseball Scoreboard - 設定',
     icon: path.join(__dirname, 'public/img/c4s_icon.png'),
+    show: false, // Don't show until ready
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -201,6 +202,12 @@ function createSettingsWindow() {
 
   // Load the settings page from the local server
   settingsWindow.loadURL(`http://localhost:${SERVER_PORT}/settings.html`);
+
+  // Show window when ready to render
+  settingsWindow.once('ready-to-show', () => {
+    settingsWindow.show();
+    settingsWindow.focus();
+  });
 
   // Open DevTools in development mode
   if (isDev) {
@@ -436,6 +443,54 @@ function getCurrentGamePath() {
 }
 
 /**
+ * Check if this is the first run of the application
+ * @returns {boolean} - True if first run
+ */
+function isFirstRun() {
+  const userDataPath = app.getPath('userData');
+  const firstRunMarker = path.join(userDataPath, '.first_run_complete');
+  return !fs.existsSync(firstRunMarker);
+}
+
+/**
+ * Mark the first run as complete
+ */
+function markFirstRunComplete() {
+  const userDataPath = app.getPath('userData');
+  const firstRunMarker = path.join(userDataPath, '.first_run_complete');
+
+  // Ensure userData directory exists
+  if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  }
+
+  // Create marker file with timestamp
+  const timestamp = new Date().toISOString();
+  fs.writeFileSync(firstRunMarker, `First run completed: ${timestamp}\n`);
+  console.log('First run marked as complete');
+}
+
+/**
+ * Show welcome dialog for first-time users
+ */
+function showWelcomeDialog() {
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Baseball Scoreboard へようこそ',
+    message: '初めてご利用いただきありがとうございます!',
+    detail: '設定ウィンドウが開きます。以下の手順で大会情報を設定してください。\n\n' +
+            '【推奨ワークフロー】\n' +
+            '1. YAMLファイルを選択（または新規作成）\n' +
+            '2. 「✅ 設定ファイルを生成」をクリック\n' +
+            '3. 「🗑️ 試合状態を削除」をクリック（確認ダイアログで自動提案）\n' +
+            '4. 「🔄 設定を再読み込み」をクリック（確認ダイアログで自動提案）\n' +
+            '5. 操作パネルで試合を開始\n\n' +
+            'ヘルプ: 設定ウィンドウ下部にYAMLファイルの例があります。',
+    buttons: ['OK']
+  });
+}
+
+/**
  * IPC Handlers for settings window
  */
 
@@ -551,6 +606,22 @@ app.whenReady().then(async () => {
 
   // Create tray icon
   createTray();
+
+  // Check for first run
+  const firstRun = isFirstRun();
+
+  if (firstRun) {
+    console.log('First run detected, showing welcome dialog and settings');
+
+    // Open settings window first (after server is ready)
+    createSettingsWindow();
+
+    // Show welcome dialog after settings window loads
+    setTimeout(() => {
+      showWelcomeDialog();
+      markFirstRunComplete();
+    }, 1500);
+  }
 
   // Create operation window
   createOperationWindow();

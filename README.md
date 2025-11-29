@@ -38,6 +38,7 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 
 ### 実装済み機能
 
+**Phase 1: 基本機能**
 - ✅ Electron基本設定（`package.json`, `main.js`, `preload.js`）
 - ✅ 自動サーバー起動機能（Electronプロセス内でNode.jsサーバーを起動）
 - ✅ メニューバー統合
@@ -45,6 +46,13 @@ YouTube 等のライブ配信で野球の試合を中継する際に、OBS の�
 - ✅ ビルド設定（Windows/Mac/Linux対応）
 - ✅ AppImage形式でのLinuxビルド（動作確認済み）
 - ✅ ファイルパス解決（asar対応、ユーザーデータディレクトリへの状態保存）
+
+**Phase 2: 設定ウィンドウ (NEW!)**
+- ✅ GUI設定ウィンドウ（`public/settings.html`）
+- ✅ YAMLファイルから設定を生成（コマンドライン不要）
+- ✅ 試合状態の削除・リセット機能
+- ✅ 設定の再読み込み機能
+- ✅ メニュー・トレイからのアクセス（`ファイル > 設定` または `Ctrl/Cmd+,`）
 
 ### Electron版の使用方法
 
@@ -99,8 +107,44 @@ Electron版では、以下の技術的な課題を解決しています：
 2. **ファイルパス解決**: `__dirname` ベースのパス解決により、開発環境とパッケージ環境の両方で動作
 3. **書き込み可能データ**: 試合状況データを `app.getPath('userData')` に保存し、AppImage実行時の読み取り専用制約を回避
 4. **サーバープロセス管理**: Electronのメインプロセスから `spawn` でNode.jsサーバーを起動し、アプリ終了時に自動的にクリーンアップ
+5. **設定ウィンドウ (Phase 2)**: IPCハンドラでYAML読み込み・設定生成・状態削除をサポート。WebSocket URL自動調整でElectronモードは常に`localhost`接続
 
-詳細は [CLAUDE.md](CLAUDE.md) の「Deployment Options」および「Electron Desktop App」セクションをご覧ください。
+詳細は以下のドキュメントをご覧ください:
+- [Electronデプロイメントガイド](doc/ELECTRON_DEPLOYMENT.md) - ビルド方法、プラットフォーム別の手順、技術的な実装詳細
+- [設定ウィンドウガイド](doc/ELECTRON_SETTINGS.md) - 設定ウィンドウの使い方、ワークフロー、トラブルシューティング
+
+### 設定ウィンドウの使い方 (Phase 2)
+
+Electronアプリ起動後、以下の方法で設定ウィンドウを開けます:
+
+**メニューから:**
+- `ファイル > 設定` をクリック
+- キーボードショートカット: `Ctrl+,` (Linux/Windows) / `Cmd+,` (macOS)
+
+**トレイアイコンから:**
+- トレイアイコンを右クリック → `設定` をクリック
+
+**設定ウィンドウでできること:**
+1. **YAMLファイルから設定生成**:
+   - `📁 YAMLファイルを選択` → YAMLの内容をプレビュー → `✅ 設定ファイルを生成`
+   - `config/init_data.json` が自動生成されます（バックアップも自動作成）
+
+2. **試合状態を削除**:
+   - `🗑️ 試合状態を削除` ボタンで `~/.config/baseball_broadcast_board/data/current_game.json` を削除
+   - 次回起動時に新しい設定が適用されます
+
+3. **設定を再読み込み**:
+   - `🔄 設定を再読み込み` ボタンで、すべてのウィンドウに設定変更を通知
+   - **操作パネルは自動的に新しい設定を反映します**(リロード不要)
+
+**推奨ワークフロー（新しい大会を開始する場合）:**
+```
+1. YAMLファイルを用意（大会名、チーム名、イニング数を記載）
+2. 設定ウィンドウで「YAMLファイルから設定生成」
+3. 「試合状態を削除」（確認ダイアログで自動提案されます）
+4. 「設定を再読み込み」（確認ダイアログで自動提案されます）
+5. 操作パネルで新しい設定が反映されていることを確認
+```
 
 ## 🚀 クイックスタート
 
@@ -171,13 +215,15 @@ graph LR;
 │   ├── index.html          # トップページ（メニュー）
 │   ├── operation.html      # 操作パネルのUI
 │   ├── board.html          # OBS等で表示するスコアボード画面
+│   ├── settings.html       # 設定ウィンドウのUI（Electron専用、Phase 2で追加）
 │   ├── css/
 │   │   ├── main.css        # カスタムスタイル
 │   │   └── bootstrap.min.css   # Bootstrap CSS (npm経由で自動生成)
 │   ├── js/
 │   │   ├── Scoreboard.js   # Vue.jsのスコアボードコンポーネント
-│   │   ├── main.js         # 操作パネルのVue.jsアプリケーション
+│   │   ├── operation.js    # 操作パネルのVue.jsアプリケーション
 │   │   ├── board.js        # 表示ボードのVue.jsアプリケーション
+│   │   ├── settings.js     # 設定ウィンドウのVue.jsアプリ（Electron専用、Phase 2で追加）
 │   │   ├── vue.global.js   # Vue.js (npm経由で自動生成)
 │   │   └── bootstrap.bundle.min.js  # Bootstrap JS (npm経由で自動生成)
 │   └── img/                # 画像ファイル
@@ -192,12 +238,15 @@ graph LR;
 ├── doc/                    # ドキュメントと画像
 │   ├── ARCHITECTURE.md     # システムアーキテクチャ詳細
 │   ├── MASTER_SLAVE_ARCHITECTURE.md  # Master/Slave制御の詳細
-│   ├── PRODUCTION_DEPLOYMENT.md      # 本番環境デプロイガイド
+│   ├── PRODUCTION_DEPLOYMENT.md      # Webアプリ版本番環境デプロイガイド（PM2）
 │   ├── WEBSOCKET_RECONNECTION.md     # WebSocket再接続機能
+│   ├── ELECTRON_DEPLOYMENT.md        # Electronアプリデプロイガイド（NEW!）
+│   ├── ELECTRON_SETTINGS.md          # Electron設定ウィンドウガイド（NEW!）
 │   ├── board.png           # 表示ボードのスクリーンショット
 │   ├── index.png           # トップページのスクリーンショット
 │   ├── operation.png       # 操作パネルのスクリーンショット
-│   └── operation_slave.png # スレーブ状態のスクリーンショット
+│   ├── operation_slave.png # スレーブ状態のスクリーンショット
+│   └── panel.png           # パネルのスクリーンショット
 ├── logs/                   # ログファイル
 │   ├── pm2-error.log       # PM2エラーログ（自動生成）
 │   └── pm2-out.log         # PM2標準出力ログ（自動生成）
@@ -208,10 +257,14 @@ graph LR;
 └── package.json            # プロジェクト情報と依存ライブラリ
 ```
 
-**Electron関連ファイル（開発中）**:
-- `main.js`: Electronのメインプロセス。サーバー自動起動、ウィンドウ管理、メニュー統合
-- `preload.js`: セキュアなIPC通信のためのプリロードスクリプト
-- `package.json`: Electron起動スクリプト（`npm run electron:dev`）とビルド設定を含む
+**Electron関連ファイル（Linux版動作確認済み）**:
+- `main.js`: Electronのメインプロセス（サーバー自動起動、ウィンドウ管理、メニュー統合、設定ウィンドウ、IPCハンドラ）
+- `preload.js`: セキュアなIPC通信のためのプリロードスクリプト（contextBridge使用）
+- `public/settings.html`: 設定ウィンドウのHTML（Phase 2で追加）
+- `public/js/settings.js`: 設定ウィンドウのVue.jsアプリ（Phase 2で追加）
+- `package.json`: Electron起動スクリプトとビルド設定（Windows/macOS/Linux）を含む
+
+**注**: `main.js`はElectronのメインプロセス、`public/js/operation.js`は操作パネルのVue.jsアプリです。
 ```
 
 ## 技術スタック

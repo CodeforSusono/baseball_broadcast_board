@@ -1,8 +1,10 @@
-const { app, BrowserWindow, Menu, Tray, dialog } = require('electron');
+const { app, BrowserWindow, Menu, Tray, dialog, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const net = require('net');
 const os = require('os');
+const fs = require('fs');
+const yaml = require('js-yaml');
 
 // Development mode check
 const isDev = process.env.NODE_ENV === 'development';
@@ -13,6 +15,7 @@ const SERVER_STARTUP_DELAY = 3000; // 3 seconds to ensure server is ready
 
 // Global references to prevent garbage collection
 let operationWindow = null;
+let settingsWindow = null;
 let serverProcess = null;
 let tray = null;
 
@@ -174,6 +177,52 @@ function createOperationWindow() {
 }
 
 /**
+ * Create the settings window
+ */
+function createSettingsWindow() {
+  // If settings window already exists, focus it
+  if (settingsWindow) {
+    settingsWindow.focus();
+    return;
+  }
+
+  settingsWindow = new BrowserWindow({
+    width: 800,
+    height: 700,
+    title: 'Baseball Scoreboard - 設定',
+    icon: path.join(__dirname, 'public/img/c4s_icon.png'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      enableRemoteModule: false
+    }
+  });
+
+  // Load the settings page from the local server
+  settingsWindow.loadURL(`http://localhost:${SERVER_PORT}/settings.html`);
+
+  // Open DevTools in development mode
+  if (isDev) {
+    settingsWindow.webContents.openDevTools();
+  }
+
+  // Handle window close
+  settingsWindow.on('closed', () => {
+    settingsWindow = null;
+  });
+
+  // Show error dialog if loading fails
+  settingsWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load settings page:', errorDescription);
+    dialog.showErrorBox(
+      '読み込みエラー',
+      `設定画面の読み込みに失敗しました:\n${errorDescription}\n\nサーバーが起動しているか確認してください。`
+    );
+  });
+}
+
+/**
  * Create application menu
  */
 function createMenu() {
@@ -191,6 +240,14 @@ function createMenu() {
             } else {
               createOperationWindow();
             }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: '設定',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => {
+            createSettingsWindow();
           }
         },
         { type: 'separator' },
@@ -268,6 +325,12 @@ function createTray() {
         }
       }
     },
+    {
+      label: '設定',
+      click: () => {
+        createSettingsWindow();
+      }
+    },
     { type: 'separator' },
     {
       label: 'サーバー情報',
@@ -302,6 +365,177 @@ function createTray() {
     }
   });
 }
+
+/**
+ * Helper functions for configuration management
+ */
+
+/**
+ * Generate init_data.json from YAML configuration or parameters
+ * @param {object} config - Configuration object {game_title, last_inning, team_names}
+ * @returns {object} Generated init_data structure
+ */
+function generateInitData(config) {
+  const { game_title, last_inning, team_names } = config;
+
+  // Validate
+  if (!Array.isArray(team_names) || team_names.length < 2) {
+    throw new Error('参加チームは最低2チーム必要です');
+  }
+
+  const innings = parseInt(last_inning, 10);
+  if (isNaN(innings) || innings < 1 || innings > 9) {
+    throw new Error('最終イニングは 1 から 9 の範囲で指定してください');
+  }
+
+  // Generate game_array
+  const game_array = ['試合前'];
+  for (let i = 1; i <= innings; i++) {
+    game_array.push(i);
+  }
+  game_array.push('試合終了');
+
+  return {
+    game_title: game_title,
+    team_top: team_names[0],
+    team_bottom: team_names[1],
+    game_array: game_array,
+    team_items: ['　', ...team_names],
+    last_inning: innings
+  };
+}
+
+/**
+ * Get path to config/init_data.json
+ * In packaged app, use writable userData directory
+ * @returns {string} Absolute path to init_data.json
+ */
+function getInitDataPath() {
+  if (isDev) {
+    return path.join(__dirname, 'config', 'init_data.json');
+  } else {
+    // Use writable userData directory for packaged app
+    return path.join(app.getPath('userData'), 'config', 'init_data.json');
+  }
+}
+
+/**
+ * Get path to bundled init_data.json (read-only, for initial copy)
+ * @returns {string} Absolute path to bundled init_data.json
+ */
+function getBundledInitDataPath() {
+  return path.join(__dirname.replace('app.asar', 'app.asar.unpacked'), 'config', 'init_data.json');
+}
+
+/**
+ * Get path to data/current_game.json
+ * @returns {string} Absolute path to current_game.json
+ */
+function getCurrentGamePath() {
+  return path.join(app.getPath('userData'), 'data', 'current_game.json');
+}
+
+/**
+ * IPC Handlers for settings window
+ */
+
+// File dialog
+ipcMain.handle('dialog:openFile', async (event, options) => {
+  const result = await dialog.showOpenDialog(options);
+  return result;
+});
+
+// Read YAML file
+ipcMain.handle('config:readYaml', async (event, filePath) => {
+  try {
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    const data = yaml.load(fileContents);
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Generate config from YAML
+ipcMain.handle('config:generate', async (event, yamlPath) => {
+  try {
+    // Read YAML file
+    const fileContents = fs.readFileSync(yamlPath, 'utf8');
+    const yamlData = yaml.load(fileContents);
+
+    // Validate required fields
+    if (!yamlData.game_title || !yamlData.last_inning || !yamlData.team_names) {
+      throw new Error('YAMLファイルに必須フィールド(game_title, last_inning, team_names)が不足しています');
+    }
+
+    // Generate init_data
+    const initData = generateInitData({
+      game_title: yamlData.game_title,
+      last_inning: yamlData.last_inning,
+      team_names: yamlData.team_names
+    });
+
+    // Get writable path
+    const initDataPath = getInitDataPath();
+    const configDir = path.dirname(initDataPath);
+
+    // Ensure config directory exists
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+
+    // Backup existing file
+    const backupPath = initDataPath + '.bak';
+    if (fs.existsSync(initDataPath)) {
+      fs.copyFileSync(initDataPath, backupPath);
+    }
+
+    // Save init_data.json
+    fs.writeFileSync(initDataPath, JSON.stringify(initData, null, 2), 'utf8');
+
+    return {
+      success: true,
+      message: `設定ファイルを生成しました\n先攻: ${initData.team_top}\n後攻: ${initData.team_bottom}`
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Delete current game state
+ipcMain.handle('config:deleteCurrent', async () => {
+  try {
+    const currentGamePath = getCurrentGamePath();
+
+    if (!fs.existsSync(currentGamePath)) {
+      return { success: true, message: '試合状態ファイルは存在しません' };
+    }
+
+    fs.unlinkSync(currentGamePath);
+    return { success: true, message: '試合状態を削除しました。次回起動時に新しい設定が適用されます。' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Reload configuration (notify all clients)
+ipcMain.handle('config:reload', async () => {
+  try {
+    // Send reload signal to all windows
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('reload-config');
+    });
+
+    return { success: true, message: '設定を再読み込みしました' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get app version
+ipcMain.handle('app:getVersion', () => {
+  return app.getVersion();
+});
 
 /**
  * Application initialization

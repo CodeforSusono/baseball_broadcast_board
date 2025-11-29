@@ -99,9 +99,9 @@ WebSocket connected
 
 ## 実装詳細
 
-### 操作パネル (public/js/main.js)
+### 操作パネル (public/js/operation.js)
 
-再接続ロジックは [public/js/main.js](../public/js/main.js) に実装されています。
+再接続ロジックは [public/js/operation.js](../public/js/operation.js) に実装されています。
 
 **主要な実装箇所:**
 
@@ -138,7 +138,7 @@ WebSocket connected
 
 再接続パラメータを変更する場合は、以下のファイルを編集します:
 
-**public/js/main.js:**
+**public/js/operation.js:**
 ```javascript
 // 再接続パラメータの変更例
 const maxReconnectAttempts = 20;  // 最大20回まで試行

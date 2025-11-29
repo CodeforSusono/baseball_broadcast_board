@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baseball Scoreboard - Settings</title>
+    <link rel="icon" href="img/c4s_icon.png" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+      /* CSS Variables for Color Scheme */
+      :root {
+        --primary-color: #4a4a9f;
+        --secondary-color: #2d8659;
+        --accent-color: #ff6b35;
+        --light-bg: #f0f4f8;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f0f2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
+      .navbar {
+        background: linear-gradient(90deg, var(--primary-color) 0%, #5a5aaf 100%) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        margin-bottom: 20px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .navbar-brand {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .card {
+        border: 2px solid var(--primary-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        background: white;
+        margin-bottom: 20px;
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #7a7acf 0%, #8a8adf 100%);
+        color: white;
+        font-weight: 600;
+        border-bottom: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, #5a5aaf 100%);
+        border: none;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #5a5aaf 0%, #6a6abf 100%);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, #3d9669 100%);
+        border: none;
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+      }
+
+      .file-info {
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 0.9em;
+      }
+
+      .alert {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Container -->
+    <div id="app">
+      <!-- Navigation -->
+      <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+          <span class="navbar-brand mb-0 h1">⚾ Baseball Scoreboard - 設定</span>
+          <span class="badge bg-light text-dark">Version: {{ appVersion }}</span>
+        </div>
+      </nav>
+
+      <div class="container">
+      <!-- YAML Configuration Card -->
+      <div class="card">
+        <div class="card-header">
+          📄 YAML設定ファイルから生成
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            YAMLファイルを選択して、大会名・チーム名・イニング数を設定できます。
+          </p>
+
+          <!-- File Selection -->
+          <div class="mb-3">
+            <button @click="selectYamlFile" class="btn btn-primary">
+              📁 YAMLファイルを選択
+            </button>
+            <div v-if="selectedYamlPath" class="file-info mt-2">
+              選択中: {{ selectedYamlPath }}
+            </div>
+          </div>
+
+          <!-- YAML Preview -->
+          <div v-if="yamlData" class="mb-3">
+            <h6>YAMLファイルの内容:</h6>
+            <div class="file-info">
+              <div><strong>大会名:</strong> {{ yamlData.game_title }}</div>
+              <div><strong>最終イニング:</strong> {{ yamlData.last_inning }}</div>
+              <div><strong>参加チーム:</strong> {{ yamlData.team_names?.join(', ') }}</div>
+            </div>
+          </div>
+
+          <!-- Generate Button -->
+          <button
+            @click="generateConfig"
+            :disabled="!selectedYamlPath"
+            class="btn btn-success w-100"
+          >
+            ✅ 設定ファイルを生成
+          </button>
+
+          <!-- Status Message -->
+          <div v-if="generateMessage" :class="generateMessageClass" class="alert" role="alert">
+            {{ generateMessage }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Game State Management Card -->
+      <div class="card">
+        <div class="card-header">
+          🗑️ 試合状態の管理
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            現在の試合状態を削除すると、次回起動時に新しい設定が適用されます。
+          </p>
+
+          <button @click="deleteCurrentGame" class="btn btn-danger w-100">
+            🗑️ 試合状態を削除
+          </button>
+
+          <!-- Status Message -->
+          <div v-if="deleteMessage" :class="deleteMessageClass" class="alert" role="alert">
+            {{ deleteMessage }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration Reload Card -->
+      <div class="card">
+        <div class="card-header">
+          🔄 設定の再読み込み
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            操作パネルや表示ボードに設定変更を通知します。
+          </p>
+
+          <button @click="reloadConfig" class="btn btn-primary w-100">
+            🔄 設定を再読み込み
+          </button>
+
+          <!-- Status Message -->
+          <div v-if="reloadMessage" :class="reloadMessageClass" class="alert" role="alert">
+            {{ reloadMessage }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Card -->
+      <div class="card">
+        <div class="card-header">
+          ℹ️ ヘルプ
+        </div>
+        <div class="card-body">
+          <h6>YAML設定ファイルの例:</h6>
+          <pre class="file-info">game_title: 夏季大会
+last_inning: 7
+team_names:
+  - チームA
+  - チームB
+  - チームC</pre>
+          <p class="text-muted mt-3">
+            <strong>注意:</strong> 設定ファイルを生成した後、「試合状態を削除」→「設定を再読み込み」を実行すると、新しい設定が適用されます。
+          </p>
+        </div>
+      </div>
+      </div> <!-- /container -->
+    </div> <!-- /app -->
+
+    <!-- Scripts -->
+    <script src="js/vue.global.js"></script>
+    <script src="js/settings.js"></script>
+  </body>
+</html>

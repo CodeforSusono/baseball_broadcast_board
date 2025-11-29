@@ -20,6 +20,15 @@ const DATA_DIR = process.env.USER_DATA_PATH
   ? path.join(process.env.USER_DATA_PATH, "data")
   : path.join(__dirname, "data");
 const GAME_STATE_FILE = path.join(DATA_DIR, "current_game.json");
+
+// Config file management
+// Similar to game state, use writable location for init_data.json
+const CONFIG_DIR = process.env.USER_DATA_PATH
+  ? path.join(process.env.USER_DATA_PATH, "config")
+  : path.join(__dirname, "config");
+const INIT_DATA_FILE = path.join(CONFIG_DIR, "init_data.json");
+const BUNDLED_INIT_DATA_FILE = path.join(__dirname, "config", "init_data.json");
+
 let currentGameState = null;
 
 // Master/Slave client management
@@ -156,21 +165,26 @@ const server = http.createServer((req, res) => {
     requestedUrl = "/index.html";
   }
 
-  // Special handling for init_data.json - serve from config/
+  // Special handling for init_data.json - serve from writable location or bundled
   let intendedPath;
   if (requestedUrl === "/init_data.json") {
-    intendedPath = path.join(__dirname, "config", "init_data.json");
+    // Priority: writable user config > bundled config
+    if (fs.existsSync(INIT_DATA_FILE)) {
+      intendedPath = INIT_DATA_FILE;
+    } else {
+      intendedPath = BUNDLED_INIT_DATA_FILE;
+    }
   } else {
     intendedPath = path.join(publicDir, requestedUrl);
   }
   const filePath = path.resolve(intendedPath);
 
-  // Security check: only allow files from public/ or config/init_data.json
-  const configFilePath = path.join(__dirname, "config", "init_data.json");
+  // Security check: only allow files from public/, user config, or bundled config
   const isPublicFile = filePath.startsWith(publicDir);
-  const isConfigFile = filePath === configFilePath;
+  const isUserConfigFile = filePath === path.resolve(INIT_DATA_FILE);
+  const isBundledConfigFile = filePath === path.resolve(BUNDLED_INIT_DATA_FILE);
 
-  if (!isPublicFile && !isConfigFile) {
+  if (!isPublicFile && !isUserConfigFile && !isBundledConfigFile) {
       console.error(`[SECURITY] Access denied to ${filePath}`);
       res.writeHead(403, { "Content-Type": "text/plain" });
       res.end("Forbidden");

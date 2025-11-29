@@ -56,9 +56,9 @@ let masterClientId = null;
    - 最も古いスレーブをマスターに昇格
    - `role_changed` 通知を送信
 
-### クライアント側のロール管理 (public/js/main.js)
+### クライアント側のロール管理 (public/js/operation.js)
 
-**状態変数** ([main.js:30-32](../public/js/main.js#L30-L32)):
+**状態変数** ([main.js:30-32](../public/js/operation.js#L30-L32)):
 ```javascript
 clientRole: null,  // null | 'master' | 'slave'
 clientId: null,
@@ -67,24 +67,24 @@ masterClientId: null,
 
 **主要機能:**
 
-1. **ハンドシェイク** ([main.js:115-119](../public/js/main.js#L115-L119)):
+1. **ハンドシェイク** ([main.js:115-119](../public/js/operation.js#L115-L119)):
    - 接続時に `{type: 'handshake', client_type: 'operation'}` を送信
    - 操作クライアント（ボードと区別）として識別
 
-2. **ロールメッセージの処理** ([main.js:127-152](../public/js/main.js#L127-L152)):
+2. **ロールメッセージの処理** ([main.js:127-152](../public/js/operation.js#L127-L152)):
    - `role_assignment`: サーバーからの初期ロール
    - `role_changed`: ロール更新（昇格または降格）
    - `game_state`: 他のクライアントからの状態更新
 
-3. **UI制御** ([main.js:89-96](../public/js/main.js#L89-L96)):
+3. **UI制御** ([main.js:89-96](../public/js/operation.js#L89-L96)):
    - `isOperationDisabled` 算出プロパティはスレーブの場合にtrueを返す
    - すべての操作ボタンは `:disabled="isOperationDisabled"` を使用
 
-4. **更新ゲート** ([main.js:188-196](../public/js/main.js#L188-L196)):
+4. **更新ゲート** ([main.js:188-196](../public/js/operation.js#L188-L196)):
    - `updateBoard()` は `clientRole === 'master'` の場合のみ更新を送信
    - スレーブが誤って状態変更を送信するのを防止
 
-5. **手動解放** ([main.js:337-349](../public/js/main.js#L337-L349)):
+5. **手動解放** ([main.js:337-349](../public/js/operation.js#L337-L349)):
    - `releaseMasterControl()` メソッドは `release_master` メッセージを送信
    - マスターのみ利用可能
    - 確認ダイアログを表示

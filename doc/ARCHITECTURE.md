@@ -85,7 +85,7 @@ WebSocketサーバー (server.js)
 | Vue.js 3 | 3.4.0+ | リアクティブなUI管理 |
 
 **フロントエンドの構成:**
-- **Vue.js 3** ([public/js/main.js](../public/js/main.js)): 操作パネルの状態管理
+- **Vue.js 3** ([public/js/operation.js](../public/js/operation.js)): 操作パネルの状態管理
 - **Scoreboard Component** ([public/js/Scoreboard.js](../public/js/Scoreboard.js)): SVGスコアボードのVueコンポーネント
 - **Bootstrap 5**: レスポンシブなUI、グリッドシステム、カード、ボタン
 
@@ -115,7 +115,7 @@ WebSocketサーバー (server.js)
 │   │   └── bootstrap.min.css   # Bootstrap CSS (npm経由で自動生成)
 │   ├── js/
 │   │   ├── Scoreboard.js   # Vue.jsのスコアボードコンポーネント
-│   │   ├── main.js         # 操作パネルのVue.jsアプリケーション
+│   │   ├── operation.js    # 操作パネルのVue.jsアプリケーション
 │   │   ├── board.js        # 表示ボードのVue.jsアプリケーション
 │   │   ├── vue.global.js   # Vue.js (npm経由で自動生成)
 │   │   └── bootstrap.bundle.min.js  # Bootstrap JS (npm経由で自動生成)
@@ -152,7 +152,7 @@ WebSocketサーバー (server.js)
 | ファイル | 役割 |
 |---------|------|
 | [server.js](../server.js) | HTTP/WebSocketサーバー、状態永続化 |
-| [public/js/main.js](../public/js/main.js) | 操作パネルのロジック、WebSocket送信 |
+| [public/js/operation.js](../public/js/operation.js) | 操作パネルのロジック、WebSocket送信 |
 | [public/js/board.js](../public/js/board.js) | 表示ボードのロジック、WebSocket受信 |
 | [public/js/Scoreboard.js](../public/js/Scoreboard.js) | SVGスコアボードコンポーネント |
 | [config/init_data.json](../config/init_data.json) | 大会設定（チーム名、イニング数） |
@@ -162,7 +162,7 @@ WebSocketサーバー (server.js)
 
 ### Vue.js による状態管理
 
-操作パネル ([public/js/main.js](../public/js/main.js)) で Vue.js 3 を使用:
+操作パネル ([public/js/operation.js](../public/js/operation.js)) で Vue.js 3 を使用:
 
 ```javascript
 data() {
@@ -213,12 +213,12 @@ data() {
 - 新規クライアント接続時に現在の状態を即座に送信
 
 **クライアント側の状態復元:**
-- **操作パネル** ([main.js:143-168](../public/js/main.js#L143-L168)): サーバーから受信した状態でVueインスタンスを更新
+- **操作パネル** ([main.js:143-168](../public/js/operation.js#L143-L168)): サーバーから受信した状態でVueインスタンスを更新
 - **表示ボード** ([board.js:73-79](../public/js/board.js#L73-L79)): `boardData` を更新して画面に反映
 
 **状態管理フロー:**
 1. ユーザーが操作パネルで試合状態を変更
-2. Vue.js の `watch` が `boardData` の変化を検知し `updateBoard()` を実行 ([main.js:94-101, 215-219](../public/js/main.js#L94-L101))
+2. Vue.js の `watch` が `boardData` の変化を検知し `updateBoard()` を実行 ([main.js:94-101, 215-219](../public/js/operation.js#L94-L101))
 3. WebSocket経由でサーバーに送信
 4. サーバーが `data/current_game.json` に保存し、全クライアントにブロードキャスト ([server.js:81-98](../server.js#L81-L98))
 5. 表示ボードが更新を受信し、画面に反映
@@ -246,7 +246,7 @@ data() {
 
 ### WebSocket URL の動的生成
 
-WebSocket URL はページのロケーションから動的に生成されます ([main.js:24-28](../public/js/main.js#L24-L28)):
+WebSocket URL はページのロケーションから動的に生成されます ([main.js:24-28](../public/js/operation.js#L24-L28)):
 
 ```javascript
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

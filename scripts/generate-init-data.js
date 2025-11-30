@@ -35,7 +35,7 @@ function generateGameArray(lastInning) {
 }
 
 // Generate init_data.json structure
-function generateInitData(gameTitle, lastInning, teamNames) {
+function generateInitData(gameTitle, lastInning, teamNames, boardBackgroundColor = '#ff55ff') {
   validateTeams(teamNames);
   const validatedInnings = validateInnings(lastInning);
 
@@ -45,7 +45,8 @@ function generateInitData(gameTitle, lastInning, teamNames) {
     team_bottom: teamNames[1],
     game_array: generateGameArray(validatedInnings),
     team_items: ['　', ...teamNames],
-    last_inning: validatedInnings
+    last_inning: validatedInnings,
+    board_background_color: boardBackgroundColor
   };
 }
 
@@ -157,6 +158,11 @@ async function interactiveMode() {
     teamIndex++;
   }
 
+  // Get background color
+  const defaultBgColor = existingData.board_background_color || '#ff55ff';
+  const bgColorInput = await question(`ボード背景色を入力してください (hex形式) [現在: ${defaultBgColor}]: `);
+  const finalBgColor = bgColorInput.trim() || defaultBgColor;
+
   rl.close();
 
   // Validate and generate
@@ -165,7 +171,7 @@ async function interactiveMode() {
     process.exit(1);
   }
 
-  const data = generateInitData(finalTitle, finalInnings, teams);
+  const data = generateInitData(finalTitle, finalInnings, teams, finalBgColor);
   console.log('');
   saveInitData(data);
 }
@@ -196,7 +202,8 @@ function yamlFileMode(filePath) {
     }
 
     const lastInning = config.last_inning || 9;
-    const data = generateInitData(config.game_title, lastInning, config.team_names);
+    const boardBackgroundColor = config.board_background_color || '#ff55ff';
+    const data = generateInitData(config.game_title, lastInning, config.team_names, boardBackgroundColor);
     saveInitData(data);
   } catch (err) {
     console.error(`✗ エラー: YAMLファイルの読み込みに失敗しました: ${err.message}`);
@@ -209,7 +216,8 @@ function commandLineMode(args) {
   const options = {
     title: null,
     innings: 9,
-    teams: []
+    teams: [],
+    bgColor: '#ff55ff'
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -224,6 +232,9 @@ function commandLineMode(args) {
       i++;
     } else if (arg === '--teams' && nextArg) {
       options.teams = nextArg.split(',').map(t => t.trim()).filter(t => t);
+      i++;
+    } else if (arg === '--bg-color' && nextArg) {
+      options.bgColor = nextArg;
       i++;
     } else if (arg === '--help' || arg === '-h') {
       showHelp();
@@ -243,7 +254,7 @@ function commandLineMode(args) {
     process.exit(1);
   }
 
-  const data = generateInitData(options.title, options.innings, options.teams);
+  const data = generateInitData(options.title, options.innings, options.teams, options.bgColor);
   saveInitData(data);
 }
 
@@ -261,16 +272,19 @@ function showHelp() {
   -t, --title <string>      大会名 (必須)
   -i, --innings <number>    最終イニング (1-9, デフォルト: 9)
   --teams <string>          参加チーム (カンマ区切り, 必須, 最低2チーム)
+  --bg-color <string>       ボード背景色 (hex形式, デフォルト: #ff55ff)
   -h, --help                このヘルプを表示
 
 例:
   npm run init -- -t "春季リーグ戦" -i 9 --teams "東京D,横浜S,大阪T"
+  npm run init -- -t "夏季大会" -i 7 --teams "A,B,C" --bg-color "#00ff00"
   npm run init config.yaml
   npm run init
 
 YAMLファイル形式:
   game_title: 春季リーグ戦
   last_inning: 9
+  board_background_color: "#ff55ff"
   team_names:
     - 東京D
     - 横浜S

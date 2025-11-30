@@ -7,6 +7,10 @@ game_title: 春季リーグ戦
 # 最終イニング (1-9の範囲で指定)
 last_inning: 9
 
+# 表示ボードの背景色 (OBSクロマキー用, 省略時: #ff55ff)
+# 推奨色: グリーン #00ff00 / マゼンタ #ff00ff / ブルー #0000ff
+board_background_color: "#ff55ff"
+
 # 参加チーム名 (最低2チーム必要)
 # 1番目のチームが先攻 (team_top)
 # 2番目のチームが後攻 (team_bottom)

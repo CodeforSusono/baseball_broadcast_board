@@ -14,7 +14,21 @@ const logger = {
 };
 
 // Game state management
-const GAME_STATE_FILE = path.resolve("./data/current_game.json");
+// In packaged Electron apps, use USER_DATA_PATH for writable data
+// In development, use local data directory
+const DATA_DIR = process.env.USER_DATA_PATH
+  ? path.join(process.env.USER_DATA_PATH, "data")
+  : path.join(__dirname, "data");
+const GAME_STATE_FILE = path.join(DATA_DIR, "current_game.json");
+
+// Config file management
+// Similar to game state, use writable location for init_data.json
+const CONFIG_DIR = process.env.USER_DATA_PATH
+  ? path.join(process.env.USER_DATA_PATH, "config")
+  : path.join(__dirname, "config");
+const INIT_DATA_FILE = path.join(CONFIG_DIR, "init_data.json");
+const BUNDLED_INIT_DATA_FILE = path.join(__dirname, "config", "init_data.json");
+
 let currentGameState = null;
 
 // Master/Slave client management
@@ -142,27 +156,36 @@ function promoteNextMaster(reason = 'master_disconnected', excludeId = null) {
 }
 
 const server = http.createServer((req, res) => {
-  const publicDir = path.resolve("./public");
+  logger.log(`[HTTP] ${req.method} ${req.url}`);
+
+  // Use __dirname for reliable path resolution in both development and packaged apps
+  const publicDir = path.join(__dirname, "public");
   let requestedUrl = req.url;
   if (requestedUrl === "/") {
     requestedUrl = "/index.html";
   }
 
-  // Special handling for init_data.json - serve from config/
+  // Special handling for init_data.json - serve from writable location or bundled
   let intendedPath;
   if (requestedUrl === "/init_data.json") {
-    intendedPath = path.resolve("./config/init_data.json");
+    // Priority: writable user config > bundled config
+    if (fs.existsSync(INIT_DATA_FILE)) {
+      intendedPath = INIT_DATA_FILE;
+    } else {
+      intendedPath = BUNDLED_INIT_DATA_FILE;
+    }
   } else {
     intendedPath = path.join(publicDir, requestedUrl);
   }
   const filePath = path.resolve(intendedPath);
 
-  // Security check: only allow files from public/ or config/init_data.json
-  const configDir = path.resolve("./config");
+  // Security check: only allow files from public/, user config, or bundled config
   const isPublicFile = filePath.startsWith(publicDir);
-  const isConfigFile = filePath === path.resolve("./config/init_data.json");
+  const isUserConfigFile = filePath === path.resolve(INIT_DATA_FILE);
+  const isBundledConfigFile = filePath === path.resolve(BUNDLED_INIT_DATA_FILE);
 
-  if (!isPublicFile && !isConfigFile) {
+  if (!isPublicFile && !isUserConfigFile && !isBundledConfigFile) {
+      console.error(`[SECURITY] Access denied to ${filePath}`);
       res.writeHead(403, { "Content-Type": "text/plain" });
       res.end("Forbidden");
       return;
@@ -181,6 +204,7 @@ const server = http.createServer((req, res) => {
     }[extname] || "application/octet-stream";
   fs.readFile(filePath, (error, content) => {
     if (error) {
+      console.error(`[HTTP] Failed to read ${requestedUrl}:`, error.code);
       if (error.code === "ENOENT") {
         res.writeHead(404);
         res.end("404 Not Found");
@@ -191,6 +215,7 @@ const server = http.createServer((req, res) => {
         );
       }
     } else {
+      logger.log(`[HTTP] Served ${requestedUrl}`);
       res.writeHead(200, { "Content-Type": contentType });
       res.end(content, "utf-8");
     }
@@ -400,5 +425,9 @@ wss.on("connection", (ws) => {
   });
 });
 server.listen(8080, () => {
-  logger.log("Server is listening on port 8080");
+  console.log("Server is listening on port 8080");
+  if (!isProduction) {
+    console.log("DATA_DIR:", DATA_DIR);
+    console.log("GAME_STATE_FILE:", GAME_STATE_FILE);
+  }
 });

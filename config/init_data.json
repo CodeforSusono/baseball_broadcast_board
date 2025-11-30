@@ -23,5 +23,6 @@
     "東京G",
     "静翔中等"
   ],
-  "last_inning": 9
+  "last_inning": 9,
+  "board_background_color": "#ff55ff"
 }

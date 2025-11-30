@@ -35,24 +35,17 @@ const app = Vue.createApp({
     // Initialize WebSocket connection
     this.connectWebSocket();
 
-    // Load configuration from init_data.json
-    fetch("/init_data.json")
-      .then((response) => response.json())
-      .then((data) => {
-        // Always load UI configuration (dropdown options)
-        this.game_array = data.game_array;
-        this.team_items = data.team_items;
+    // Load configuration from init_data.json (initial load)
+    this.loadConfiguration(false);
 
-        // Load initial values only if not restored from server
-        if (!this.restoredFromServer) {
-          this.game_title = data.game_title;
-          this.team_top = data.team_top;
-          this.team_bottom = data.team_bottom;
-          if (data.last_inning !== undefined) {
-            this.last_inning = data.last_inning;
-          }
-        }
+    // Set up Electron reload-config listener
+    if (window.electronAPI?.onReloadConfig) {
+      window.electronAPI.onReloadConfig(() => {
+        console.log('Received reload-config event from Electron');
+        // Force reload to update all values including game_title, team names
+        this.loadConfiguration(true);
       });
+    }
   },
   beforeUnmount() {
     // Clean up WebSocket and timers
@@ -100,11 +93,43 @@ const app = Vue.createApp({
     },
   },
   methods: {
+    /**
+     * Load configuration from init_data.json
+     * @param {boolean} forceReload - If true, reload all values including game_title, team names regardless of server state
+     */
+    loadConfiguration(forceReload = false) {
+      fetch("/init_data.json")
+        .then((response) => response.json())
+        .then((data) => {
+          // Always load UI configuration (dropdown options)
+          this.game_array = data.game_array;
+          this.team_items = data.team_items;
+
+          // Load initial values if not restored from server OR if force reload requested
+          if (forceReload || !this.restoredFromServer) {
+            this.game_title = data.game_title;
+            this.team_top = data.team_top;
+            this.team_bottom = data.team_bottom;
+            if (data.last_inning !== undefined) {
+              this.last_inning = data.last_inning;
+            }
+          }
+
+          const reloadType = forceReload ? 'forced' : 'initial';
+          console.log(`Configuration loaded successfully (${reloadType})`);
+        })
+        .catch((error) => {
+          console.error('Failed to load configuration:', error);
+        });
+    },
+
     // WebSocket connection management
     connectWebSocket() {
       // Dynamically generate WebSocket URL based on current page location
+      // In Electron environment, always use localhost to ensure local server connection
+      const isElectron = window.electronAPI?.isElectron || false;
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsHost = window.location.host;
+      const wsHost = isElectron ? 'localhost:8080' : window.location.host;
 
       try {
         this.socket = new WebSocket(`${wsProtocol}//${wsHost}`);

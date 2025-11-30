@@ -110,6 +110,7 @@ WebSocketサーバー (server.js)
 │   ├── index.html          # トップページ（メニュー）
 │   ├── operation.html      # 操作パネルのUI
 │   ├── board.html          # OBS等で表示するスコアボード画面
+│   ├── settings.html       # 設定ウィンドウのUI（Electron専用、Phase 2で追加）
 │   ├── css/
 │   │   ├── main.css        # カスタムスタイル
 │   │   └── bootstrap.min.css   # Bootstrap CSS (npm経由で自動生成)
@@ -117,6 +118,7 @@ WebSocketサーバー (server.js)
 │   │   ├── Scoreboard.js   # Vue.jsのスコアボードコンポーネント
 │   │   ├── operation.js    # 操作パネルのVue.jsアプリケーション
 │   │   ├── board.js        # 表示ボードのVue.jsアプリケーション
+│   │   ├── settings.js     # 設定ウィンドウのVue.jsアプリ（Electron専用、Phase 2で追加）
 │   │   ├── vue.global.js   # Vue.js (npm経由で自動生成)
 │   │   └── bootstrap.bundle.min.js  # Bootstrap JS (npm経由で自動生成)
 │   └── img/                # 画像ファイル
@@ -129,23 +131,34 @@ WebSocketサーバー (server.js)
 ├── data/                   # 実行時データ
 │   └── current_game.json   # 試合状況の保存ファイル（自動生成）
 ├── doc/                    # ドキュメントと画像
-│   ├── ARCHITECTURE.md     # このファイル
-│   ├── MASTER_SLAVE_ARCHITECTURE.md
-│   ├── PRODUCTION_DEPLOYMENT.md
-│   ├── WEBSOCKET_RECONNECTION.md
+│   ├── ARCHITECTURE.md     # このファイル（システムアーキテクチャ）
+│   ├── USER_GUIDE.md       # ユーザーガイド（一般ユーザー向け）
+│   ├── CONFIGURATION.md    # 設定ファイルガイド
+│   ├── MULTI_PC_SETUP.md   # マルチPC環境構築ガイド
+│   ├── TROUBLESHOOTING.md  # トラブルシューティング
+│   ├── MASTER_SLAVE_ARCHITECTURE.md  # Master/Slave制御の詳細
+│   ├── PRODUCTION_DEPLOYMENT.md      # Webアプリ版本番環境デプロイガイド（PM2）
+│   ├── WEBSOCKET_RECONNECTION.md     # WebSocket再接続機能
+│   ├── ELECTRON_DEPLOYMENT.md        # Electronアプリデプロイガイド
+│   ├── ELECTRON_SETTINGS.md          # Electron設定ウィンドウガイド
 │   ├── board.png           # 表示ボードのスクリーンショット
 │   ├── index.png           # トップページのスクリーンショット
 │   ├── operation.png       # 操作パネルのスクリーンショット
-│   └── operation_slave.png # スレーブ状態のスクリーンショット
+│   ├── operation_slave.png # スレーブ状態のスクリーンショット
+│   └── panel.png           # パネルのスクリーンショット
 ├── logs/                   # ログファイル
 │   ├── pm2-error.log       # PM2エラーログ（自動生成）
 │   └── pm2-out.log         # PM2標準出力ログ（自動生成）
 ├── ecosystem.config.js     # PM2設定ファイル
+├── main.js                 # Electronメインプロセス（Linux版動作確認済み）
+├── preload.js              # Electron preloadスクリプト（セキュアなIPC通信）
 ├── server.js               # WebサーバーとWebSocketサーバー
 ├── package.json            # プロジェクト情報と依存ライブラリ
 ├── CLAUDE.md               # AI開発支援用プロジェクトガイド
-└── README.md               # プロジェクトREADME
+└── README.md               # プロジェクトREADME（一般ユーザー向け）
 ```
+
+**注**: `main.js`はElectronのメインプロセス、`public/js/operation.js`は操作パネルのVue.jsアプリです。
 
 ### 主要ファイルの役割
 

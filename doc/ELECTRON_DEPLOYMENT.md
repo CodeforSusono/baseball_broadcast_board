@@ -487,8 +487,120 @@ sudo lsof -i :8080
 kill -9 <PID>
 ```
 
+## Electron実装履歴（Phase 1-5）
+
+このセクションでは、Electron版の実装がどのように段階的に進められたかを記録しています。
+
+### Phase 1: 基本機能実装
+
+**実装内容**:
+- ✅ Electron基本設定（`package.json`, `main.js`, `preload.js`）
+- ✅ 自動サーバー起動機能
+- ✅ メニューバー統合
+- ✅ システムトレイアイコン
+- ✅ ビルド設定（Windows/Mac/Linux対応）
+- ✅ AppImage形式でのLinuxビルド
+- ✅ ファイルパス解決（asar対応、ユーザーデータディレクトリへの状態保存）
+
+**主要成果物**:
+- `main.js`: Electronメインプロセス、サーバー起動、ウィンドウ管理
+- `preload.js`: セキュアなIPC通信のためのコンテキストブリッジ
+- `package.json`: Electron起動スクリプトとビルド設定
+
+**技術的課題と解決策**:
+- **asar対応**: `app.asar.unpacked`への展開により、サーバー関連ファイルを実行時にアクセス可能に
+- **書き込み可能データ**: `app.getPath('userData')`を使用し、AppImageの読み取り専用制約を回避
+- **サーバー起動**: `spawn`でElectronバイナリをNode.jsランタイムとして使用（`ELECTRON_RUN_AS_NODE`フラグ）
+
+### Phase 2: 設定ウィンドウ
+
+**実装内容**:
+- ✅ GUI設定ウィンドウ（`public/settings.html`、`public/js/settings.js`）
+- ✅ YAMLファイルから設定を生成（コマンドライン不要）
+- ✅ 試合状態の削除・リセット機能
+- ✅ 設定の再読み込み機能
+- ✅ メニュー・トレイからのアクセス（`ファイル > 設定` または `Ctrl/Cmd+,`）
+- ✅ 表示ボード背景色の設定（OBSクロマキー用）
+
+**主要成果物**:
+- `public/settings.html`: 設定ウィンドウのUI
+- `public/js/settings.js`: 設定ウィンドウのVue.jsアプリ
+- IPCハンドラ（`main.js`内）: ファイルダイアログ、YAML読み込み、設定生成、状態削除
+
+**技術的課題と解決策**:
+- **セキュアなファイル操作**: `contextBridge`でIPCを公開し、レンダラープロセスから安全にファイル操作
+- **設定の強制リロード**: `loadConfiguration(forceReload=true)`で既存の試合状態に関わらず設定を更新
+- **WebSocket URL自動調整**: Electron検出時は常に`localhost:8080`に接続
+
+**詳細**: [Electron設定ウィンドウガイド](ELECTRON_SETTINGS.md)
+
+### Phase 3: Electron版クライアントのMaster/Slave対応
+
+**実装内容**:
+- ✅ Electronクライアントの検出機能
+- ✅ WebSocket接続の自動設定（localhost強制）
+- ✅ Master/Slave制御の完全サポート
+
+**仕様**:
+- **Electron特別扱いなし**: Electronクライアントもブラウザクライアントと同じMaster/Slaveロジックに従う
+- **トークンベース認証**: 同じマスタートークン永続化メカニズムを使用
+- **柔軟な運用**: 複数のElectronインスタンスまたはElectron/ブラウザ混在環境に対応
+
+**詳細**: [Master/Slave制御アーキテクチャ](MASTER_SLAVE_ARCHITECTURE.md)
+
+### Phase 4: 背景色カスタマイズ機能
+
+**実装内容**:
+- ✅ `board_background_color`フィールドの追加（`config/init_data.json`）
+- ✅ 設定ウィンドウでのGUI変更機能
+- ✅ `public/js/board.js`での動的背景色適用
+- ✅ Electron設定とinit_data.jsonの連携
+
+**デフォルト値**: `#ff55ff`（マゼンタ）
+
+**推奨色**:
+- グリーン: `#00ff00`
+- マゼンタ: `#ff00ff`
+- ブルー: `#0000ff`
+
+**技術的課題と解決策**:
+- **優先順位の明確化**: init_data.jsonの値がElectron設定より優先（クロスプラットフォーム一貫性）
+- **ライブ更新**: `board-background-color-changed`イベントで即座に反映
+
+### Phase 5: 初回起動ガイド
+
+**実装内容**:
+- ✅ 初回起動時の自動検出（マーカーファイル: `~/.config/baseball_broadcast_board/.first_run_complete`）
+- ✅ 設定ウィンドウの自動表示（`show: false` + `ready-to-show`パターン）
+- ✅ ウェルカムダイアログによる手順案内（5ステップ）
+- ✅ 2回目以降は通常起動（操作パネルのみ）
+
+**初回起動フロー**:
+1. 設定ウィンドウが自動的に開く（前面表示）
+2. ウェルカムダイアログが1.5秒後に表示（推奨ワークフローを案内）
+3. 操作パネルも同時に開く（背景で起動）
+
+**マーカーファイルの仕組み**:
+- **場所**: `~/.config/baseball_broadcast_board/.first_run_complete`
+- **検出**: ファイルの存在チェックのみ（JSONパース不要）
+- **作成**: ウェルカムダイアログ表示後に自動作成（タイムスタンプ付き）
+
+**設計上の利点**:
+- シンプルで高速（ファイル存在チェックのみ）
+- デバッグ可能（タイムスタンプで初回起動日時を確認可能）
+- Unix慣習に準拠（ドットプレフィックスの隠しファイル）
+
+### 今後の拡張予定
+
+- **Windows/macOS対応の確認**: 現在はLinuxのみ動作確認済み
+- **自動更新機能**: `electron-updater`の統合
+- **複数言語対応**: 英語版UIの追加
+- **設定のインポート/エクスポート**: YAML設定の保存・読み込み
+
 ## 参考資料
 
 - [Electron公式ドキュメント](https://www.electronjs.org/docs/latest/)
 - [electron-builder公式ドキュメント](https://www.electron.build/)
 - [AppImage仕様](https://docs.appimage.org/)
+- [Electron設定ウィンドウガイド](ELECTRON_SETTINGS.md) - Phase 2の詳細
+- [Master/Slave制御アーキテクチャ](MASTER_SLAVE_ARCHITECTURE.md) - Phase 3の詳細

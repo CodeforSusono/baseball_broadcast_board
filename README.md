@@ -28,7 +28,9 @@ sudo apt install libfuse2  # Ubuntu 24.04以降のみ
 ./dist/Baseball\ Scoreboard-1.0.0.AppImage --no-sandbox
 ```
 
+![エレクトロン版操作パネル](doc/electron_operation_window.png)
 初回起動時に設定ウィンドウが開き、試合設定を行えます。
+![設定ウィンドウ](doc/electron_settings_window.png)
 
 #### Windows / macOS
 
@@ -50,6 +52,11 @@ http://localhost:8080/board.html      # 表示ボード
 ```
 
 複数PCからアクセスする場合は`localhost`をサーバーのIPアドレスに変更してください。
+
+![初期メニュー](doc/index.png)
+![操作パネル](doc/operation.png)
+![操舵パネル（スレーブ）](doc/operation_slave.png)
+![表示ボード](doc/board.png)
 
 詳細: [マルチPC環境構築ガイド](doc/MULTI_PC_SETUP.md)
 

@@ -16,7 +16,10 @@ createApp({
       deleteMessage: null,
       deleteMessageClass: '',
       reloadMessage: null,
-      reloadMessageClass: ''
+      reloadMessageClass: '',
+      boardBackgroundColor: '#ff55ff',
+      boardSettingsMessage: null,
+      boardSettingsMessageClass: ''
     };
   },
   async mounted() {
@@ -24,6 +27,12 @@ createApp({
     if (window.electronAPI) {
       try {
         this.appVersion = await window.electronAPI.getVersion();
+
+        // Get current board background color
+        const bgColor = await window.electronAPI.getBoardBackgroundColor();
+        if (bgColor) {
+          this.boardBackgroundColor = bgColor;
+        }
       } catch (error) {
         console.error('Failed to get app version:', error);
       }
@@ -161,7 +170,7 @@ createApp({
 
     /**
      * Show success message
-     * @param {string} target - 'generate', 'delete', or 'reload'
+     * @param {string} target - 'generate', 'delete', 'reload', or 'board'
      * @param {string} message - Message to display
      */
     showSuccess(target, message) {
@@ -174,6 +183,9 @@ createApp({
       } else if (target === 'reload') {
         this.reloadMessage = message;
         this.reloadMessageClass = 'alert-success';
+      } else if (target === 'board') {
+        this.boardSettingsMessage = message;
+        this.boardSettingsMessageClass = 'alert-success';
       }
 
       // Auto-clear after 5 seconds
@@ -182,7 +194,7 @@ createApp({
 
     /**
      * Show error message
-     * @param {string} target - 'generate', 'delete', or 'reload'
+     * @param {string} target - 'generate', 'delete', 'reload', or 'board'
      * @param {string} message - Error message to display
      */
     showError(target, message) {
@@ -195,6 +207,9 @@ createApp({
       } else if (target === 'reload') {
         this.reloadMessage = message;
         this.reloadMessageClass = 'alert-danger';
+      } else if (target === 'board') {
+        this.boardSettingsMessage = message;
+        this.boardSettingsMessageClass = 'alert-danger';
       }
 
       // Auto-clear after 5 seconds
@@ -203,7 +218,7 @@ createApp({
 
     /**
      * Clear messages
-     * @param {string} target - 'generate', 'delete', or 'reload'
+     * @param {string} target - 'generate', 'delete', 'reload', or 'board'
      */
     clearMessages(target) {
       if (target === 'generate') {
@@ -215,6 +230,54 @@ createApp({
       } else if (target === 'reload') {
         this.reloadMessage = null;
         this.reloadMessageClass = '';
+      } else if (target === 'board') {
+        this.boardSettingsMessage = null;
+        this.boardSettingsMessageClass = '';
+      }
+    },
+
+    /**
+     * Update color from color picker
+     * @param {Event} event - Input event from color picker
+     */
+    updateColorFromPicker(event) {
+      this.boardBackgroundColor = event.target.value;
+    },
+
+    /**
+     * Reset background color to default
+     */
+    resetBackgroundColor() {
+      this.boardBackgroundColor = '#ff55ff';
+      this.showSuccess('board', 'デフォルト色に戻しました');
+    },
+
+    /**
+     * Apply board display settings
+     */
+    async applyBoardSettings() {
+      if (!window.electronAPI) {
+        this.showError('board', 'Electron環境でのみ使用可能です');
+        return;
+      }
+
+      // Validate color format
+      const colorPattern = /^#[0-9A-Fa-f]{6}$/;
+      if (!colorPattern.test(this.boardBackgroundColor)) {
+        this.showError('board', '色形式が不正です。#rrggbb 形式で入力してください（例: #ff55ff）');
+        return;
+      }
+
+      try {
+        const result = await window.electronAPI.setBoardBackgroundColor(this.boardBackgroundColor);
+
+        if (result.success) {
+          this.showSuccess('board', '背景色を適用しました');
+        } else {
+          this.showError('board', `適用エラー: ${result.error}`);
+        }
+      } catch (error) {
+        this.showError('board', `適用エラー: ${error.message}`);
       }
     }
   }

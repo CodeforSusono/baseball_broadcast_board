@@ -23,10 +23,35 @@ const board = Vue.createApp({
     maxReconnectAttempts: 10,
     reconnectDelay: 1000,
     reconnectTimer: null,
+    // Background color
+    backgroundColor: '#ff55ff'
   }),
-  created() {
+  async created() {
+    // Set default background color immediately
+    document.body.style.backgroundColor = this.backgroundColor;
+
     // Initialize WebSocket connection
     this.connectWebSocket();
+
+    // Load background color from Electron settings (Electron mode only)
+    if (window.electronAPI) {
+      try {
+        const color = await window.electronAPI.getBoardBackgroundColor();
+        if (color) {
+          this.backgroundColor = color;
+          document.body.style.backgroundColor = color;
+        }
+
+        // Listen for background color changes
+        window.electronAPI.onBoardBackgroundColorChanged((event, color) => {
+          this.backgroundColor = color;
+          document.body.style.backgroundColor = color;
+          console.log(`Board background color changed to: ${color}`);
+        });
+      } catch (error) {
+        console.error('Failed to load background color from Electron:', error);
+      }
+    }
 
     // Load configuration from init_data.json
     fetch("/init_data.json")
@@ -35,6 +60,13 @@ const board = Vue.createApp({
         this.boardData.game_title = data.game_title;
         this.boardData.team_top = data.team_top;
         this.boardData.team_bottom = data.team_bottom;
+
+        // Load background color from init_data.json (for browser access)
+        // This overrides the default and works for both Web and Electron versions
+        if (data.board_background_color) {
+          this.backgroundColor = data.board_background_color;
+          document.body.style.backgroundColor = data.board_background_color;
+        }
       });
   },
   beforeUnmount() {

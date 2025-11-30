@@ -27,6 +27,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('reload-config', callback);
   },
 
+  // Board background color operations
+  getBoardBackgroundColor: () => ipcRenderer.invoke('board:getBackgroundColor'),
+  setBoardBackgroundColor: (color) => ipcRenderer.invoke('board:setBackgroundColor', color),
+  onBoardBackgroundColorChanged: (callback) => {
+    ipcRenderer.on('board-background-color-changed', (event, color) => callback(event, color));
+  },
+
   // Version information
   getVersion: () => ipcRenderer.invoke('app:getVersion')
 });

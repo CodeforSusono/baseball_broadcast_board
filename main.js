@@ -408,7 +408,8 @@ function generateInitData(config) {
     team_bottom: team_names[1],
     game_array: game_array,
     team_items: ['　', ...team_names],
-    last_inning: innings
+    last_inning: innings,
+    board_background_color: config.board_background_color || '#ff55ff'
   };
 }
 
@@ -527,7 +528,8 @@ ipcMain.handle('config:generate', async (event, yamlPath) => {
     const initData = generateInitData({
       game_title: yamlData.game_title,
       last_inning: yamlData.last_inning,
-      team_names: yamlData.team_names
+      team_names: yamlData.team_names,
+      board_background_color: yamlData.board_background_color
     });
 
     // Get writable path
@@ -590,6 +592,94 @@ ipcMain.handle('config:reload', async () => {
 // Get app version
 ipcMain.handle('app:getVersion', () => {
   return app.getVersion();
+});
+
+/**
+ * Get board settings file path
+ * @returns {string} - Path to board settings file
+ */
+function getBoardSettingsPath() {
+  return path.join(app.getPath('userData'), 'config', 'board_settings.json');
+}
+
+/**
+ * Get board background color
+ */
+ipcMain.handle('board:getBackgroundColor', async () => {
+  try {
+    const settingsPath = getBoardSettingsPath();
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      return settings.backgroundColor || '#ff55ff';
+    }
+    return '#ff55ff';
+  } catch (error) {
+    console.error('Failed to get background color:', error);
+    return '#ff55ff';
+  }
+});
+
+/**
+ * Set board background color
+ */
+ipcMain.handle('board:setBackgroundColor', async (_event, color) => {
+  try {
+    const settingsPath = getBoardSettingsPath();
+    const settingsDir = path.dirname(settingsPath);
+
+    // Ensure directory exists
+    if (!fs.existsSync(settingsDir)) {
+      fs.mkdirSync(settingsDir, { recursive: true });
+    }
+
+    // Save settings to file
+    const settings = { backgroundColor: color };
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+
+    // Also update init_data.json for browser access
+    try {
+      const initDataPath = getInitDataPath();
+      const initDataDir = path.dirname(initDataPath);
+
+      // Ensure config directory exists
+      if (!fs.existsSync(initDataDir)) {
+        fs.mkdirSync(initDataDir, { recursive: true });
+      }
+
+      // Read current init_data.json
+      let initData = {};
+      if (fs.existsSync(initDataPath)) {
+        initData = JSON.parse(fs.readFileSync(initDataPath, 'utf8'));
+      } else {
+        // If init_data.json doesn't exist in userData, copy from bundled
+        const bundledPath = getBundledInitDataPath();
+        if (fs.existsSync(bundledPath)) {
+          initData = JSON.parse(fs.readFileSync(bundledPath, 'utf8'));
+        }
+      }
+
+      // Update background color
+      initData.board_background_color = color;
+
+      // Write updated init_data.json
+      fs.writeFileSync(initDataPath, JSON.stringify(initData, null, 2));
+      console.log(`Updated init_data.json with background color: ${color}`);
+    } catch (initDataError) {
+      console.error('Failed to update init_data.json:', initDataError);
+      // Don't fail the entire operation if init_data.json update fails
+    }
+
+    // Notify all board windows
+    BrowserWindow.getAllWindows().forEach(win => {
+      win.webContents.send('board-background-color-changed', color);
+    });
+
+    console.log(`Board background color set to: ${color}`);
+    return { success: true, message: '背景色を適用しました' };
+  } catch (error) {
+    console.error('Failed to set background color:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 /**

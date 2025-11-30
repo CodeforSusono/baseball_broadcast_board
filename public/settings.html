@@ -186,6 +186,88 @@
         </div>
       </div>
 
+      <!-- Board Display Settings Card -->
+      <div class="card">
+        <div class="card-header">
+          🎨 表示ボード設定
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            表示ボードの背景色を設定できます（OBSクロマキー用）。
+          </p>
+
+          <!-- Color Selection -->
+          <div class="mb-3">
+            <label for="bgColorPicker" class="form-label">背景色</label>
+            <div class="input-group">
+              <input
+                type="color"
+                id="bgColorPicker"
+                :value="boardBackgroundColor"
+                @input="updateColorFromPicker"
+                class="form-control form-control-color"
+                title="色を選択"
+              >
+              <input
+                type="text"
+                v-model="boardBackgroundColor"
+                class="form-control"
+                placeholder="#ff55ff"
+                pattern="^#[0-9A-Fa-f]{6}$"
+                maxlength="7"
+              >
+              <button
+                @click="resetBackgroundColor"
+                class="btn"
+                type="button"
+                title="デフォルト色に戻す"
+                style="background-color: #ff55ff; color: white; border: 1px solid #ff55ff;"
+              >
+                🔄 デフォルト
+              </button>
+            </div>
+            <div class="form-text">
+              クロマキー用推奨色: グリーン <code>#00ff00</code> / マゼンタ <code>#ff00ff</code> / ブルー <code>#0000ff</code>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div class="mb-3">
+            <label class="form-label">プレビュー</label>
+            <div
+              :style="{
+                backgroundColor: boardBackgroundColor,
+                width: '100%',
+                height: '60px',
+                border: '2px solid #ccc',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                fontWeight: 'bold'
+              }"
+            >
+              背景色プレビュー
+            </div>
+          </div>
+
+          <!-- Apply Button -->
+          <button
+            @click="applyBoardSettings"
+            class="btn btn-primary w-100"
+          >
+            ✅ 表示ボードに適用
+          </button>
+
+          <!-- Status Message -->
+          <div v-if="boardSettingsMessage" :class="boardSettingsMessageClass" class="alert" role="alert">
+            {{ boardSettingsMessage }}
+          </div>
+        </div>
+      </div>
+
       <!-- Help Card -->
       <div class="card">
         <div class="card-header">
@@ -195,6 +277,7 @@
           <h6>YAML設定ファイルの例:</h6>
           <pre class="file-info">game_title: 夏季大会
 last_inning: 7
+board_background_color: "#00ff00"  # 省略可 (デフォルト: #ff55ff)
 team_names:
   - チームA
   - チームB

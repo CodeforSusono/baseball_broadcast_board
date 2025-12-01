@@ -221,6 +221,135 @@ const server = http.createServer((req, res) => {
     }
   });
 });
+
+/**
+ * Sanitize HTML string to prevent XSS attacks
+ * SECURITY: Remove all HTML tags and decode HTML entities
+ *
+ * @param {string} input - String to sanitize
+ * @returns {string} - Sanitized string with HTML removed
+ */
+function sanitizeHTML(input) {
+  if (typeof input !== 'string') {
+    return input;
+  }
+
+  return input
+    // Remove all HTML tags
+    .replace(/<[^>]*>/g, '')
+    // Decode common HTML entities to prevent double-encoding bypass
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    // Remove the decoded tags (in case of encoded script tags)
+    .replace(/<[^>]*>/g, '')
+    // Remove any remaining HTML entities
+    .replace(/&[a-zA-Z0-9#]+;/g, '')
+    // Trim whitespace
+    .trim();
+}
+
+/**
+ * Validate and sanitize game state data
+ * SECURITY: Prevent XSS, type confusion, and invalid data injection
+ *
+ * @param {Object} gameData - Game state data from client
+ * @returns {Object} - Validation result {valid: boolean, error?: string, sanitizedData?: Object}
+ */
+function validateGameState(gameData) {
+  try {
+    // Check if gameData is an object
+    if (typeof gameData !== 'object' || gameData === null || Array.isArray(gameData)) {
+      return { valid: false, error: 'Game data must be a non-null object' };
+    }
+
+    // Define expected schema with types and constraints
+    const schema = {
+      game_title: { type: 'string', maxLength: 100 },
+      team_top: { type: 'string', maxLength: 50 },
+      team_bottom: { type: 'string', maxLength: 50 },
+      game_inning: { type: 'number', min: 0, max: 99 },
+      top: { type: 'boolean' },
+      first_base: { type: 'boolean' },
+      second_base: { type: 'boolean' },
+      third_base: { type: 'boolean' },
+      ball_cnt: { type: 'number', min: 0, max: 3 },
+      strike_cnt: { type: 'number', min: 0, max: 2 },
+      out_cnt: { type: 'number', min: 0, max: 2 },
+      score_top: { type: 'number', min: 0, max: 999 },
+      score_bottom: { type: 'number', min: 0, max: 999 },
+      last_inning: { type: 'number', min: 1, max: 99 }
+    };
+
+    const sanitizedData = {};
+
+    // Validate each field
+    for (const [field, rules] of Object.entries(schema)) {
+      const value = gameData[field];
+
+      // Check type
+      if (rules.type === 'string') {
+        if (typeof value !== 'string') {
+          return { valid: false, error: `Field '${field}' must be a string` };
+        }
+
+        // Check max length
+        if (rules.maxLength && value.length > rules.maxLength) {
+          return {
+            valid: false,
+            error: `Field '${field}' exceeds maximum length of ${rules.maxLength}`
+          };
+        }
+
+        // Sanitize HTML
+        sanitizedData[field] = sanitizeHTML(value);
+
+      } else if (rules.type === 'number') {
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+          return { valid: false, error: `Field '${field}' must be a finite number` };
+        }
+
+        // Check range
+        if (rules.min !== undefined && value < rules.min) {
+          return {
+            valid: false,
+            error: `Field '${field}' must be at least ${rules.min}`
+          };
+        }
+        if (rules.max !== undefined && value > rules.max) {
+          return {
+            valid: false,
+            error: `Field '${field}' must be at most ${rules.max}`
+          };
+        }
+
+        // Round to integer for count fields
+        sanitizedData[field] = Math.round(value);
+
+      } else if (rules.type === 'boolean') {
+        if (typeof value !== 'boolean') {
+          return { valid: false, error: `Field '${field}' must be a boolean` };
+        }
+        sanitizedData[field] = value;
+      }
+    }
+
+    // Check for unexpected fields (strict schema enforcement)
+    const unexpectedFields = Object.keys(gameData).filter(key => !schema[key]);
+    if (unexpectedFields.length > 0) {
+      logger.log(`[VALIDATION] Ignoring unexpected fields: ${unexpectedFields.join(', ')}`);
+      // Don't reject, just ignore unexpected fields for forward compatibility
+    }
+
+    return { valid: true, sanitizedData };
+
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
 const wss = new WebSocket.Server({ server });
 wss.on("connection", (ws) => {
   const clientId = generateClientId();
@@ -375,11 +504,26 @@ wss.on("connection", (ws) => {
           return;
         }
 
+        // SECURITY: Validate and sanitize game state to prevent XSS attacks
+        const validation = validateGameState(gameData);
+        if (!validation.valid) {
+          logger.log(`[SECURITY] Rejected invalid game state from ${clientId}: ${validation.error}`);
+          sendMessage(ws, {
+            type: 'error',
+            message: 'Invalid game state data',
+            error: validation.error
+          });
+          return;
+        }
+
+        // Use sanitized data instead of raw client input
+        const sanitizedGameData = validation.sanitizedData;
+
         // Update and save current game state
-        currentGameState = gameData;
+        currentGameState = sanitizedGameData;
         saveGameState(currentGameState);
 
-        // Broadcast to all other clients
+        // Broadcast sanitized data to all other clients
         broadcastToClients(
           { type: 'game_state', data: currentGameState },
           (client, id) => id !== clientId

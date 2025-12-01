@@ -541,6 +541,50 @@ function showWelcomeDialog() {
 }
 
 /**
+ * Validate hex color code format
+ * SECURITY: Prevent injection of non-color strings into configuration files
+ *
+ * @param {string} color - Color string to validate
+ * @returns {Object} - Validation result with {valid: boolean, error?: string, normalizedColor?: string}
+ */
+function validateHexColor(color) {
+  try {
+    // Check if color is a non-empty string
+    if (typeof color !== 'string' || color.trim() === '') {
+      return { valid: false, error: 'Color must be a non-empty string' };
+    }
+
+    // Normalize: trim whitespace and convert to lowercase
+    const normalizedColor = color.trim().toLowerCase();
+
+    // SECURITY: Check for hex color code format (#rrggbb or #rgb)
+    // Only accept standard hex color formats to prevent injection attacks
+    const hexColorPattern = /^#([0-9a-f]{6}|[0-9a-f]{3})$/;
+
+    if (!hexColorPattern.test(normalizedColor)) {
+      return {
+        valid: false,
+        error: 'Color must be in hex format (#rrggbb or #rgb). Example: #ff55ff'
+      };
+    }
+
+    // Expand 3-digit hex to 6-digit for consistency (#rgb -> #rrggbb)
+    let expandedColor = normalizedColor;
+    if (normalizedColor.length === 4) {
+      // #rgb -> #rrggbb
+      const r = normalizedColor[1];
+      const g = normalizedColor[2];
+      const b = normalizedColor[3];
+      expandedColor = `#${r}${r}${g}${g}${b}${b}`;
+    }
+
+    return { valid: true, normalizedColor: expandedColor };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
+/**
  * IPC Handlers for settings window
  */
 
@@ -686,6 +730,15 @@ ipcMain.handle('board:getBackgroundColor', async () => {
  */
 ipcMain.handle('board:setBackgroundColor', async (_event, color) => {
   try {
+    // SECURITY: Validate color input to prevent injection of non-color strings
+    const validation = validateHexColor(color);
+    if (!validation.valid) {
+      return { success: false, error: `Invalid color format: ${validation.error}` };
+    }
+
+    // Use the validated and normalized color (e.g., #rgb -> #rrggbb)
+    const validatedColor = validation.normalizedColor;
+
     const settingsPath = getBoardSettingsPath();
     const settingsDir = path.dirname(settingsPath);
 
@@ -694,8 +747,8 @@ ipcMain.handle('board:setBackgroundColor', async (_event, color) => {
       fs.mkdirSync(settingsDir, { recursive: true });
     }
 
-    // Save settings to file
-    const settings = { backgroundColor: color };
+    // Save settings to file with validated color
+    const settings = { backgroundColor: validatedColor };
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 
     // Also update init_data.json for browser access
@@ -720,23 +773,23 @@ ipcMain.handle('board:setBackgroundColor', async (_event, color) => {
         }
       }
 
-      // Update background color
-      initData.board_background_color = color;
+      // Update background color with validated value
+      initData.board_background_color = validatedColor;
 
       // Write updated init_data.json
       fs.writeFileSync(initDataPath, JSON.stringify(initData, null, 2));
-      console.log(`Updated init_data.json with background color: ${color}`);
+      console.log(`Updated init_data.json with background color: ${validatedColor}`);
     } catch (initDataError) {
       console.error('Failed to update init_data.json:', initDataError);
       // Don't fail the entire operation if init_data.json update fails
     }
 
-    // Notify all board windows
+    // Notify all board windows with validated color
     BrowserWindow.getAllWindows().forEach(win => {
-      win.webContents.send('board-background-color-changed', color);
+      win.webContents.send('board-background-color-changed', validatedColor);
     });
 
-    console.log(`Board background color set to: ${color}`);
+    console.log(`Board background color set to: ${validatedColor}`);
     return { success: true, message: '背景色を適用しました' };
   } catch (error) {
     console.error('Failed to set background color:', error);

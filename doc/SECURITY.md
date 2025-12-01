@@ -369,6 +369,145 @@ This reduces attack surface by:
 - Preventing slave clients from sending malicious updates
 - However, **does not replace validation** (master can still be compromised)
 
+## CSS Injection Prevention (DOM-based)
+
+### Vulnerability Background
+
+DOM-based CSS injection occurs when user-controlled data is used to modify CSS properties without proper validation. In this application:
+
+- The display board (`board.html`) sets `document.body.style.backgroundColor` dynamically
+- Color values come from multiple sources: Electron main process, `init_data.json`, or live updates
+- Malicious values could inject arbitrary CSS to alter page appearance, hide content, or facilitate phishing attacks
+- While CSS injection is less severe than script injection, it can still be exploited for social engineering
+
+### Implementation: Client-Side Color Validation
+
+#### Location
+- [public/js/board.js:6-41](../public/js/board.js#L6-L41) - `validateHexColor()` function
+- [public/js/board.js:128-145](../public/js/board.js#L128-L145) - `setBackgroundColor()` method
+
+#### Protection Layers
+
+**1. Hex Color Validation** ([public/js/board.js:6-41](../public/js/board.js#L6-L41))
+
+The `validateHexColor()` function validates color format before applying to DOM:
+
+```javascript
+function validateHexColor(color) {
+  // Type validation
+  if (typeof color !== 'string' || color.trim() === '') {
+    return { valid: false, error: 'Color must be a non-empty string' };
+  }
+
+  // Normalize: trim whitespace and convert to lowercase
+  const normalizedColor = color.trim().toLowerCase();
+
+  // SECURITY: Check for hex color code format (#rrggbb or #rgb)
+  const hexColorPattern = /^#([0-9a-f]{6}|[0-9a-f]{3})$/;
+
+  if (!hexColorPattern.test(normalizedColor)) {
+    return { valid: false, error: 'Color must be in hex format (#rrggbb or #rgb)' };
+  }
+
+  // Expand 3-digit hex to 6-digit for consistency
+  let expandedColor = normalizedColor;
+  if (normalizedColor.length === 4) {
+    const r = normalizedColor[1];
+    const g = normalizedColor[2];
+    const b = normalizedColor[3];
+    expandedColor = `#${r}${r}${g}${g}${b}${b}`;
+  }
+
+  return { valid: true, normalizedColor: expandedColor };
+}
+```
+
+**Protection against**:
+- CSS property injection: `red !important; background-image: url('http://evil.com/phishing.png')`
+- Opacity manipulation: `transparent; opacity: 0; display: none`
+- Position hijacking: `#ff55ff; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999`
+- Named colors: `red`, `blue`, `transparent`, `inherit`
+- CSS functions: `rgba()`, `rgb()`, `hsl()`, `url()`, `expression()`
+
+**2. Safe Color Application** ([public/js/board.js:128-145](../public/js/board.js#L128-L145))
+
+The `setBackgroundColor()` method validates before applying to DOM:
+
+```javascript
+setBackgroundColor(color) {
+  // SECURITY: Validate color before applying to prevent CSS injection
+  const validation = validateHexColor(color);
+
+  if (validation.valid) {
+    // Use validated and normalized color
+    this.backgroundColor = validation.normalizedColor;
+    document.body.style.backgroundColor = validation.normalizedColor;
+  } else {
+    // Invalid color - log warning and use default
+    console.warn(`Invalid background color received: "${color}". Using default color.`);
+    this.backgroundColor = this.defaultBackgroundColor;
+    document.body.style.backgroundColor = this.defaultBackgroundColor;
+  }
+}
+```
+
+**3. Protected Color Sources**
+
+All color assignments go through `setBackgroundColor()` method:
+- [public/js/board.js:75](../public/js/board.js#L75) - Default color on page load
+- [public/js/board.js:86](../public/js/board.js#L86) - Color from Electron settings
+- [public/js/board.js:92](../public/js/board.js#L92) - Color from Electron live updates
+- [public/js/board.js:112](../public/js/board.js#L112) - Color from `init_data.json`
+
+### Attack Scenarios Prevented
+
+| Attack Vector | Example Input | Prevention Method |
+|---------------|---------------|-------------------|
+| CSS property injection | `red !important; background-image: url('http://evil.com')` | Hex format regex validation |
+| Opacity manipulation | `transparent; opacity: 0; display: none` | Hex format regex validation |
+| Position hijacking | `#ff55ff; position: fixed; z-index: 9999` | Hex format regex validation |
+| Named color bypass | `red`, `blue`, `transparent`, `inherit` | Hex format regex validation |
+| CSS function injection | `rgba(255, 0, 0, 0.5)`, `url('javascript:alert(1)')` | Hex format regex validation |
+| Expression injection | `expression(alert('xss'))` | Hex format regex validation |
+| Semicolon injection | `#ff55ff; display: none` | Hex format regex validation |
+| Important flag | `#ff55ff !important` | Hex format regex validation |
+
+### Defense in Depth
+
+The color validation implements defense in depth:
+
+1. **Server-side validation** ([main.js:501-536](main.js#L501-L536))
+   - Main process validates color before writing to config files
+   - Uses `validateHexColor()` function
+   - **Primary security boundary** for Electron mode
+
+2. **Client-side validation** ([public/js/board.js:6-41](../public/js/board.js#L6-L41))
+   - Renderer process validates color before applying to DOM
+   - Uses same validation logic as main process
+   - **Secondary security boundary** for all color sources
+
+3. **Fallback to default** ([public/js/board.js:137-144](../public/js/board.js#L137-L144))
+   - Invalid colors are rejected and logged
+   - Default color `#ff55ff` (magenta) is used instead
+   - Prevents page from breaking due to invalid input
+
+### Error Handling
+
+Invalid colors are logged with warning messages and fall back to default:
+
+```javascript
+console.warn(
+  `Invalid background color received: "${color}". ` +
+  `Error: ${validation.error}. Using default color.`
+);
+```
+
+This approach:
+- ✅ Prevents CSS injection attacks with malformed input
+- ✅ Maintains functionality by using safe default
+- ✅ Provides debugging information in console
+- ✅ Doesn't expose validation logic details to potential attackers
+
 ## Testing
 
 ### Implemented Tests
@@ -377,10 +516,11 @@ The project now uses **Vitest** for automated security testing.
 
 **Test Files**:
 - [test/unit/validate-file-path.test.js](../test/unit/validate-file-path.test.js) - Path traversal tests (29 tests)
-- [test/unit/validate-hex-color.test.js](../test/unit/validate-hex-color.test.js) - Color validation tests (39 tests)
+- [test/unit/validate-hex-color.test.js](../test/unit/validate-hex-color.test.js) - Main process color validation tests (39 tests)
 - [test/unit/validate-game-state.test.js](../test/unit/validate-game-state.test.js) - XSS prevention & game state validation tests (46 tests)
+- [test/unit/validate-board-color.test.js](../test/unit/validate-board-color.test.js) - Client-side CSS injection prevention tests (47 tests)
 
-**Test Coverage**: 114 total test cases covering all security validations
+**Test Coverage**: 161 total test cases covering all security validations
 
 **Run Tests**:
 ```bash
@@ -391,9 +531,10 @@ npm run test:coverage # With coverage report
 
 **Test Results**:
 - ✅ Path traversal tests: 29/29 passing
-- ✅ Color validation tests: 39/39 passing
+- ✅ Main process color validation tests: 39/39 passing
 - ✅ XSS prevention tests: 46/46 passing
-- ✅ **Total: 114/114 passing (100%)**
+- ✅ Client-side CSS injection prevention tests: 47/47 passing
+- ✅ **Total: 161/161 passing (100%)**
 
 ### Test Cases Overview
 
@@ -535,6 +676,58 @@ describe('validateGameState', () => {
 });
 ```
 
+### Unit Tests for `validateHexColor()` (board.js - Client-side)
+
+```javascript
+// Test cases for CSS injection prevention
+describe('board.js validateHexColor (CSS Injection Prevention)', () => {
+  test('should accept valid hex colors', () => {
+    const result = validateHexColor('#ff55ff');
+    expect(result.valid).toBe(true);
+    expect(result.normalizedColor).toBe('#ff55ff');
+  });
+
+  test('should expand 3-digit to 6-digit', () => {
+    const result = validateHexColor('#f5f');
+    expect(result.valid).toBe(true);
+    expect(result.normalizedColor).toBe('#ff55ff');
+  });
+
+  test('should reject CSS injection with background-image', () => {
+    const maliciousColor = "red !important; background-image: url('http://evil.com/phishing.png')";
+    const result = validateHexColor(maliciousColor);
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject CSS injection with opacity', () => {
+    const maliciousColor = "transparent; opacity: 0; display: none";
+    const result = validateHexColor(maliciousColor);
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject CSS injection with position', () => {
+    const maliciousColor = "#ff55ff; position: fixed; z-index: 9999";
+    const result = validateHexColor(maliciousColor);
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject CSS function injection', () => {
+    const result = validateHexColor('rgba(255, 0, 0, 0.5)');
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject named colors', () => {
+    const result = validateHexColor('red');
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject url() injection', () => {
+    const result = validateHexColor("url('javascript:alert(1)')");
+    expect(result.valid).toBe(false);
+  });
+});
+```
+
 ### Integration Tests
 
 ```javascript
@@ -582,22 +775,34 @@ describe('IPC Security', () => {
 - [server.js:232-252](server.js#L232-L252) - HTML sanitization logic
 - [server.js:261-351](server.js#L261-L351) - Game state validation logic
 - [server.js:507-531](server.js#L507-L531) - WebSocket message handler (XSS prevention)
-- [main.js:501-536](main.js#L501-L536) - Color validation logic
+- [main.js:501-536](main.js#L501-L536) - Color validation logic (main process)
 - [main.js:669-735](main.js#L669-L735) - `board:setBackgroundColor` handler
 - [main.js:553-568](main.js#L553-L568) - `config:readYaml` handler
 - [main.js:571-615](main.js#L571-L615) - `config:generate` handler
+- [public/js/board.js:6-41](../public/js/board.js#L6-L41) - Client-side color validation logic
+- [public/js/board.js:128-145](../public/js/board.js#L128-L145) - `setBackgroundColor()` method (CSS injection prevention)
 - [preload.js:20-21](preload.js#L20-L21) - IPC API exposure
 
 **Verification steps**:
 1. Confirm `validateGameState()` is called before storing/broadcasting game state
 2. Confirm `sanitizeHTML()` removes all HTML tags from string fields
 3. Confirm `validateFilePath()` is called in all file-reading IPC handlers
-4. Confirm `validateHexColor()` is called in `board:setBackgroundColor` handler
-5. Check that sanitized/normalized data is used (not original client input)
-6. Verify extension whitelist is enforced for file paths
-7. Test with various XSS, path traversal, and injection payloads
+4. Confirm `validateHexColor()` is called in `board:setBackgroundColor` handler (main process)
+5. Confirm `validateHexColor()` is called in `setBackgroundColor()` method (board.js renderer)
+6. Confirm all `document.body.style.backgroundColor` assignments go through `setBackgroundColor()`
+7. Check that sanitized/normalized data is used (not original client input)
+8. Verify extension whitelist is enforced for file paths
+9. Test with various XSS, path traversal, CSS injection, and other injection payloads
 
 ## Changelog
+
+### 2025-12-01 (Fourth Update)
+- **Added**: Client-side `validateHexColor()` function in board.js for CSS injection prevention
+- **Added**: `setBackgroundColor()` method to centralize and validate all color assignments
+- **Fixed**: DOM-based CSS injection vulnerability in board.js (line 42, 48, 68)
+- **Severity**: Low (CSS injection allowing page appearance manipulation and potential phishing)
+- **Test Coverage**: 47 test cases for CSS injection prevention (100% passing)
+- **Total Tests**: 161/161 passing (29 path + 39 main color + 46 XSS/game state + 47 board color)
 
 ### 2025-12-01 (Third Update)
 - **Added**: `sanitizeHTML()` function for XSS prevention
@@ -605,7 +810,7 @@ describe('IPC Security', () => {
 - **Fixed**: Stored XSS vulnerability in WebSocket game state handler
 - **Severity**: Medium (stored XSS allowing script execution in other users' browsers)
 - **Test Coverage**: 46 test cases for XSS prevention and game state validation (100% passing)
-- **Total Tests**: 114/114 passing (29 path + 39 color + 46 XSS/game state)
+- **Total Tests**: 114/114 passing (29 path + 39 main color + 46 XSS/game state)
 
 ### 2025-12-01 (Second Update)
 - **Added**: `validateHexColor()` function with multi-layer input validation

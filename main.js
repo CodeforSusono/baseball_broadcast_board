@@ -9,6 +9,55 @@ const yaml = require('js-yaml');
 // Development mode check
 const isDev = process.env.NODE_ENV === 'development';
 
+/**
+ * Security: Validate file path to prevent path traversal attacks
+ * @param {string} filePath - File path to validate
+ * @param {string[]} allowedExtensions - Allowed file extensions (e.g., ['.yaml', '.yml'])
+ * @returns {{valid: boolean, error?: string, normalizedPath?: string}}
+ */
+function validateFilePath(filePath, allowedExtensions = []) {
+  try {
+    // SECURITY: Check for suspicious patterns BEFORE normalization
+    // This prevents path traversal attacks from being resolved away
+    const suspiciousPatterns = ['..', '~', '%00', '\0'];
+    for (const pattern of suspiciousPatterns) {
+      if (filePath.includes(pattern)) {
+        return { valid: false, error: 'Path contains suspicious patterns' };
+      }
+    }
+
+    // Normalize and resolve the path
+    const normalizedPath = path.normalize(filePath);
+    const resolvedPath = path.resolve(normalizedPath);
+
+    // Check if file exists
+    if (!fs.existsSync(resolvedPath)) {
+      return { valid: false, error: 'File does not exist' };
+    }
+
+    // Check if it's a file (not a directory)
+    const stats = fs.statSync(resolvedPath);
+    if (!stats.isFile()) {
+      return { valid: false, error: 'Path is not a file' };
+    }
+
+    // Check file extension if specified
+    if (allowedExtensions.length > 0) {
+      const ext = path.extname(resolvedPath).toLowerCase();
+      if (!allowedExtensions.includes(ext)) {
+        return {
+          valid: false,
+          error: `File extension must be one of: ${allowedExtensions.join(', ')}`
+        };
+      }
+    }
+
+    return { valid: true, normalizedPath: resolvedPath };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
 // Server configuration
 const SERVER_PORT = 8080;
 const SERVER_STARTUP_DELAY = 3000; // 3 seconds to ensure server is ready
@@ -504,7 +553,14 @@ ipcMain.handle('dialog:openFile', async (event, options) => {
 // Read YAML file
 ipcMain.handle('config:readYaml', async (event, filePath) => {
   try {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
+    // Security: Validate file path to prevent path traversal attacks
+    const validation = validateFilePath(filePath, ['.yaml', '.yml']);
+    if (!validation.valid) {
+      return { success: false, error: `Invalid file path: ${validation.error}` };
+    }
+
+    // Use the validated and normalized path
+    const fileContents = fs.readFileSync(validation.normalizedPath, 'utf8');
     const data = yaml.load(fileContents);
     return { success: true, data: data };
   } catch (error) {
@@ -515,8 +571,14 @@ ipcMain.handle('config:readYaml', async (event, filePath) => {
 // Generate config from YAML
 ipcMain.handle('config:generate', async (event, yamlPath) => {
   try {
-    // Read YAML file
-    const fileContents = fs.readFileSync(yamlPath, 'utf8');
+    // Security: Validate file path to prevent path traversal attacks
+    const validation = validateFilePath(yamlPath, ['.yaml', '.yml']);
+    if (!validation.valid) {
+      return { success: false, error: `Invalid file path: ${validation.error}` };
+    }
+
+    // Read YAML file using validated path
+    const fileContents = fs.readFileSync(validation.normalizedPath, 'utf8');
     const yamlData = yaml.load(fileContents);
 
     // Validate required fields
@@ -752,3 +814,17 @@ app.on('before-quit', () => {
 app.on('quit', () => {
   console.log('App has quit');
 });
+
+/**
+ * Export functions for testing
+ * Only export when not running as Electron app (for unit tests)
+ */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    validateFilePath,
+    generateInitData,
+    getInitDataPath,
+    getCurrentGamePath,
+    getBoardSettingsPath,
+  };
+}

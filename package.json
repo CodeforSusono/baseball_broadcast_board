@@ -4,7 +4,11 @@
   "description": "Real-time baseball scoreboard for broadcasting and web",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch",
     "start": "node server.js",
     "electron": "electron .",
     "electron:dev": "NODE_ENV=development electron .",
@@ -35,9 +39,12 @@
   "author": "Akira Tanaka",
   "license": "",
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.14",
+    "@vitest/ui": "^4.0.14",
     "electron": "25.9.8",
     "electron-builder": "^25.1.8",
-    "pm2": "^6.0.13"
+    "pm2": "^6.0.13",
+    "vitest": "^4.0.14"
   },
   "build": {
     "appId": "com.baseball.scoreboard",

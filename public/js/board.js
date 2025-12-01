@@ -1,3 +1,45 @@
+/**
+ * Validates if a color is a valid hex color code
+ * @param {string} color - Color string to validate
+ * @returns {{valid: boolean, normalizedColor?: string, error?: string}}
+ */
+function validateHexColor(color) {
+  try {
+    // Check if color is a non-empty string
+    if (typeof color !== 'string' || color.trim() === '') {
+      return { valid: false, error: 'Color must be a non-empty string' };
+    }
+
+    // Normalize: trim whitespace and convert to lowercase
+    const normalizedColor = color.trim().toLowerCase();
+
+    // SECURITY: Check for hex color code format (#rrggbb or #rgb)
+    // Only accept standard hex color formats to prevent CSS injection attacks
+    const hexColorPattern = /^#([0-9a-f]{6}|[0-9a-f]{3})$/;
+
+    if (!hexColorPattern.test(normalizedColor)) {
+      return {
+        valid: false,
+        error: 'Color must be in hex format (#rrggbb or #rgb). Example: #ff55ff'
+      };
+    }
+
+    // Expand 3-digit hex to 6-digit for consistency (#rgb -> #rrggbb)
+    let expandedColor = normalizedColor;
+    if (normalizedColor.length === 4) {
+      // #rgb -> #rrggbb
+      const r = normalizedColor[1];
+      const g = normalizedColor[2];
+      const b = normalizedColor[3];
+      expandedColor = `#${r}${r}${g}${g}${b}${b}`;
+    }
+
+    return { valid: true, normalizedColor: expandedColor };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
 const board = Vue.createApp({
   data: () => ({
     boardData: {
@@ -24,11 +66,13 @@ const board = Vue.createApp({
     reconnectDelay: 1000,
     reconnectTimer: null,
     // Background color
-    backgroundColor: '#ff55ff'
+    backgroundColor: '#ff55ff',
+    // Default color (fallback for invalid colors)
+    defaultBackgroundColor: '#ff55ff'
   }),
   async created() {
-    // Set default background color immediately
-    document.body.style.backgroundColor = this.backgroundColor;
+    // Set default background color immediately (validated)
+    this.setBackgroundColor(this.backgroundColor);
 
     // Initialize WebSocket connection
     this.connectWebSocket();
@@ -38,14 +82,14 @@ const board = Vue.createApp({
       try {
         const color = await window.electronAPI.getBoardBackgroundColor();
         if (color) {
-          this.backgroundColor = color;
-          document.body.style.backgroundColor = color;
+          // SECURITY: Validate color before applying
+          this.setBackgroundColor(color);
         }
 
         // Listen for background color changes
         window.electronAPI.onBoardBackgroundColorChanged((event, color) => {
-          this.backgroundColor = color;
-          document.body.style.backgroundColor = color;
+          // SECURITY: Validate color before applying
+          this.setBackgroundColor(color);
           console.log(`Board background color changed to: ${color}`);
         });
       } catch (error) {
@@ -64,8 +108,8 @@ const board = Vue.createApp({
         // Load background color from init_data.json (for browser access)
         // This overrides the default and works for both Web and Electron versions
         if (data.board_background_color) {
-          this.backgroundColor = data.board_background_color;
-          document.body.style.backgroundColor = data.board_background_color;
+          // SECURITY: Validate color before applying
+          this.setBackgroundColor(data.board_background_color);
         }
       });
   },
@@ -77,6 +121,29 @@ const board = Vue.createApp({
     }
   },
   methods: {
+    /**
+     * Sets the background color with validation
+     * @param {string} color - Color to set (must be valid hex color)
+     */
+    setBackgroundColor(color) {
+      // SECURITY: Validate color before applying to prevent CSS injection
+      const validation = validateHexColor(color);
+
+      if (validation.valid) {
+        // Use validated and normalized color
+        this.backgroundColor = validation.normalizedColor;
+        document.body.style.backgroundColor = validation.normalizedColor;
+      } else {
+        // Invalid color - log warning and use default
+        console.warn(
+          `Invalid background color received: "${color}". ` +
+          `Error: ${validation.error}. Using default color.`
+        );
+        this.backgroundColor = this.defaultBackgroundColor;
+        document.body.style.backgroundColor = this.defaultBackgroundColor;
+      }
+    },
+
     // WebSocket connection management
     connectWebSocket() {
       // Dynamically generate WebSocket URL based on current page location

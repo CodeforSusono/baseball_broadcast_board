@@ -133,15 +133,125 @@ This approach:
 - ✅ Provides enough context for legitimate users to fix issues
 - ✅ Doesn't expose internal validation logic details
 
+## Input Validation Protection
+
+### Vulnerability Background
+
+Improper input validation occurs when an application accepts user-controlled input without validating its format and type. In Electron applications with IPC handlers, this is critical because:
+
+- Malicious renderer processes can send arbitrary data to main process handlers
+- Invalid data could corrupt configuration files or cause unexpected behavior
+- Non-validated input may bypass client-side validation
+
+### Implementation: Color Code Validation
+
+#### Location
+- [main.js:501-536](main.js#L501-L536) - `validateHexColor()` function
+- [main.js:669-735](main.js#L669-L735) - `board:setBackgroundColor` IPC handler (uses validation)
+
+#### Protection Layers
+
+The `validateHexColor()` function implements multiple validation layers:
+
+1. **Type Validation**
+   ```javascript
+   if (typeof color !== 'string' || color.trim() === '') {
+     return { valid: false, error: 'Color must be a non-empty string' };
+   }
+   ```
+   - Ensures input is a non-empty string
+   - Rejects null, undefined, objects, numbers
+   - Prevents type confusion attacks
+
+2. **Format Validation**
+   ```javascript
+   const hexColorPattern = /^#([0-9a-f]{6}|[0-9a-f]{3})$/;
+   if (!hexColorPattern.test(normalizedColor)) {
+     return { valid: false, error: 'Color must be in hex format (#rrggbb or #rgb)' };
+   }
+   ```
+   - Only accepts standard hex color formats (`#rrggbb` or `#rgb`)
+   - Prevents injection of arbitrary strings into JSON configuration files
+   - Case-insensitive validation
+
+3. **Normalization**
+   ```javascript
+   const normalizedColor = color.trim().toLowerCase();
+   // Expand #rgb to #rrggbb for consistency
+   if (normalizedColor.length === 4) {
+     const r = normalizedColor[1];
+     const g = normalizedColor[2];
+     const b = normalizedColor[3];
+     expandedColor = `#${r}${r}${g}${g}${b}${b}`;
+   }
+   ```
+   - Trims whitespace and converts to lowercase
+   - Expands 3-digit hex to 6-digit for consistency
+   - Ensures uniform storage format
+
+### Protected IPC Handlers
+
+#### `board:setBackgroundColor`
+- **Location**: [main.js:669-735](main.js#L669-L735)
+- **Function**: Sets background color for OBS chroma-key compositing
+- **Protection**: Validates color input with `validateHexColor()` before writing to files
+- **Usage**: Settings window → "🎨 表示ボード設定" → "適用" button
+
+### Attack Scenarios Prevented
+
+| Attack Vector | Example Input | Prevention Method |
+|---------------|---------------|-------------------|
+| JSON injection | `{"backgroundColor": "red"}` | Hex format regex validation |
+| SQL injection | `'; DROP TABLE colors; --` | Hex format regex validation |
+| Script injection | `<script>alert("xss")</script>` | Hex format regex validation |
+| Command injection | `$(rm -rf /)` | Hex format regex validation |
+| Newline injection | `#ff55ff\n"malicious": "data"` | Hex format regex validation |
+| Unicode escape injection | `\u0023ff55ff` | Hex format regex validation |
+| Type confusion | `123456` (number) | Type validation |
+
+### Defense in Depth
+
+The color validation implements multiple layers of defense:
+
+1. **Client-side validation** ([public/js/settings.js:264-269](../public/js/settings.js#L264-L269))
+   - User-facing validation in renderer process
+   - Provides immediate feedback
+   - **Cannot be trusted** (renderer process can be compromised)
+
+2. **Server-side validation** ([main.js:672-675](main.js#L672-L675))
+   - Main process validates all input
+   - Uses `validateHexColor()` function
+   - **Primary security boundary**
+
+3. **Normalized storage** ([main.js:677-690](main.js#L677-L690))
+   - Validated color is normalized before storage
+   - Consistent format (`#rrggbb`) in all configuration files
+   - Prevents edge cases in downstream consumers
+
+### Error Handling
+
+Validation errors are returned to the renderer process with clear messages:
+
+```javascript
+return { success: false, error: `Invalid color format: ${validation.error}` };
+```
+
+This approach:
+- ✅ Provides clear feedback for legitimate users
+- ✅ Prevents injection attacks with malformed input
+- ✅ Maintains security without compromising usability
+
 ## Testing
 
 ### Implemented Tests
 
 The project now uses **Vitest** for automated security testing.
 
-**Test File**: [test/unit/validate-file-path.test.js](../test/unit/validate-file-path.test.js)
+**Test Files**:
+- [test/unit/validate-file-path.test.js](../test/unit/validate-file-path.test.js) - Path traversal tests (29 tests)
+- [test/unit/validate-hex-color.test.js](../test/unit/validate-hex-color.test.js) - Color validation tests (39 tests)
 
-**Test Coverage**: 29 test cases covering all security aspects of `validateFilePath()`
+**Test Coverage**: 68 total test cases covering all security validations
 
 **Run Tests**:
 ```bash
@@ -150,7 +260,10 @@ npm run test:run      # Run once (CI mode)
 npm run test:coverage # With coverage report
 ```
 
-**Test Results**: ✅ All 29 tests passing
+**Test Results**:
+- ✅ Path traversal tests: 29/29 passing
+- ✅ Color validation tests: 39/39 passing
+- ✅ **Total: 68/68 passing (100%)**
 
 ### Test Cases Overview
 
@@ -186,6 +299,50 @@ describe('validateFilePath', () => {
 
   test('should reject non-existent files', () => {
     const result = validateFilePath('/nonexistent/file.yaml', ['.yaml']);
+    expect(result.valid).toBe(false);
+  });
+});
+```
+
+### Unit Tests for `validateHexColor()`
+
+```javascript
+// Test cases for color validation
+describe('validateHexColor', () => {
+  test('should accept valid 6-digit hex color', () => {
+    const result = validateHexColor('#ff55ff');
+    expect(result.valid).toBe(true);
+    expect(result.normalizedColor).toBe('#ff55ff');
+  });
+
+  test('should expand 3-digit hex to 6-digit', () => {
+    const result = validateHexColor('#f5f');
+    expect(result.valid).toBe(true);
+    expect(result.normalizedColor).toBe('#ff55ff');
+  });
+
+  test('should reject color without # prefix', () => {
+    const result = validateHexColor('ff55ff');
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject invalid characters', () => {
+    const result = validateHexColor('#gghhii');
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject JSON injection attempt', () => {
+    const result = validateHexColor('{"backgroundColor": "red"}');
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject script injection attempt', () => {
+    const result = validateHexColor('<script>alert("xss")</script>');
+    expect(result.valid).toBe(false);
+  });
+
+  test('should reject non-string input', () => {
+    const result = validateHexColor(123456);
     expect(result.valid).toBe(false);
   });
 });
@@ -235,24 +392,33 @@ describe('IPC Security', () => {
 ### For Security Auditors
 
 **Key files to review**:
-- [main.js:18-58](main.js#L18-L58) - Path validation logic
+- [main.js:501-536](main.js#L501-L536) - Color validation logic
+- [main.js:669-735](main.js#L669-L735) - `board:setBackgroundColor` handler
 - [main.js:553-568](main.js#L553-L568) - `config:readYaml` handler
 - [main.js:571-615](main.js#L571-L615) - `config:generate` handler
 - [preload.js:20-21](preload.js#L20-L21) - IPC API exposure
 
 **Verification steps**:
 1. Confirm `validateFilePath()` is called in all file-reading IPC handlers
-2. Check that normalized/resolved paths are used (not original input)
-3. Verify extension whitelist is enforced
-4. Test with various path traversal payloads
+2. Confirm `validateHexColor()` is called in `board:setBackgroundColor` handler
+3. Check that normalized/resolved paths and colors are used (not original input)
+4. Verify extension whitelist is enforced for file paths
+5. Test with various path traversal and injection payloads
 
 ## Changelog
 
-### 2025-12-01
+### 2025-12-01 (Second Update)
+- **Added**: `validateHexColor()` function with multi-layer input validation
+- **Fixed**: Missing input validation in `board:setBackgroundColor` IPC handler
+- **Severity**: Low (configuration file corruption)
+- **Test Coverage**: 39 test cases for color validation (100% passing)
+
+### 2025-12-01 (Initial)
 - **Added**: `validateFilePath()` function with multi-layer security validation
 - **Fixed**: Path traversal vulnerability in `config:readYaml` (CVE-pending)
 - **Fixed**: Path traversal vulnerability in `config:generate` (CVE-pending)
 - **Severity**: High (arbitrary file read with user privileges)
+- **Test Coverage**: 29 test cases for path validation (100% passing)
 
 ## References
 

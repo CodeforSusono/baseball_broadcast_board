@@ -59,3 +59,14 @@ config/my-config.yaml
 test-*.js
 main-minimal.js
 /test-app
+
+# Vitest coverage reports
+/coverage
+*.lcov
+
+# Vitest cache
+/.vitest
+
+# Old test files (deprecated)
+/test/unit/path-traversal.test.js
+/test/unit/temp-test-files

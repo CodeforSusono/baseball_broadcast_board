@@ -169,3 +169,38 @@ npm run init
 - [js-yaml](https://github.com/nodeca/js-yaml) (v4.1.0+) - [MIT License](https://github.com/nodeca/js-yaml/blob/master/LICENSE)
 
 実際にインストールされるバージョンは `package-lock.json` をご確認ください。
+
+## 🧪 テスト
+
+このプロジェクトは[Vitest](https://vitest.dev/)を使用した自動テストを実装しています。
+
+### テストの実行
+
+```bash
+# すべてのテストを実行
+npm test
+
+# テストを1回だけ実行（CI用）
+npm run test:run
+
+# カバレッジレポート付きでテスト
+npm run test:coverage
+
+# UIモードでテストを実行
+npm run test:ui
+
+# ウォッチモード（ファイル変更時に自動再実行）
+npm run test:watch
+```
+
+### テスト内容
+
+**Path Traversalセキュリティテスト** ([test/unit/validate-file-path.test.js](test/unit/validate-file-path.test.js))
+- ファイルパス検証機能のセキュリティテスト（29テストケース）
+- パストラバーサル攻撃の防御テスト
+- 不正な拡張子・ファイルタイプの検出
+- 実際の攻撃シナリオに基づいたテスト
+
+**カバレッジ**: セキュリティクリティカルな`validateFilePath()`関数は100%テスト済み
+
+詳細は[doc/SECURITY.md](doc/SECURITY.md)および[doc/TESTING_FRAMEWORK_PROPOSAL.md](doc/TESTING_FRAMEWORK_PROPOSAL.md)を参照してください。

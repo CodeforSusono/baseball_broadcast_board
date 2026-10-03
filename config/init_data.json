@@ -1,7 +1,7 @@
 {
-  "game_title": "第22回 DREAM-CUP",
-  "team_top": "静岡D",
-  "team_bottom": "横浜M",
+  "game_title": "第23回DREAMCUP",
+  "team_top": "静岡ドリームス",
+  "team_bottom": "横浜&埼玉連合",
   "game_array": [
     "試合前",
     1,
@@ -16,12 +16,12 @@
     "試合終了"
   ],
   "team_items": [
-    "　",
-    "静岡D",
-    "横浜M",
-    "Ｒ.Ｓ.",
-    "東京G",
-    "静翔中等"
+    "静岡\nドリームス",
+    "横浜&\n埼玉連合",
+    "信濃\nレッドスターズ",
+    "京・名\nドリーム連合",
+    "東京\nジャイアンツ",
+    "東京\nブルーサンダース"
   ],
   "last_inning": 9,
   "board_background_color": "#ff55ff"

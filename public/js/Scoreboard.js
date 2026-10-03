@@ -64,44 +64,50 @@ const scoreboardComponent = {
             y="36.099411">{{ inningMsg }}</tspan></text>
         <text
           xml:space="preserve"
-          style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
+          style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.5px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
           x="22.440168"
           y="46.34383"
           id="text8"><tspan
-            id="tspan8"
-            style="font-size:4.58611px;fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
+            v-for="(teamLine, index) in teamTopLines"
+            :key="index"
+            style="fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
+            :style="{ fontSize: teamFontSize }"
             x="22.440168"
-            y="46.34383">{{ boardData.team_top }}</tspan></text>
+            :y="46.34383 + (index - (teamTopLines.length - 1) / 2) * 3.2">{{ teamLine }}</tspan></text>
         <text
           xml:space="preserve"
-          style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.58611px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
+          style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.5px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#333333;fill-opacity:1;stroke-width:0.264583"
           x="22.124441"
           y="53.872559"
           id="text7-5"><tspan
-            id="tspan7-2"
-            style="font-size:4.58611px;fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
+            v-for="(teamLine, index) in teamBottomLines"
+            :key="index"
+            style="fill:#e3e3e3;fill-opacity:1;stroke-width:0.264583"
+            :style="{ fontSize: teamFontSize }"
             x="22.124441"
-            y="53.872559">{{ boardData.team_bottom }}</tspan></text>
+            :y="53.872559 + (index - (teamBottomLines.length - 1) / 2) * 3.2">{{ teamLine }}</tspan></text>
         <text
           xml:space="preserve"
           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.5861px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#c8c8c8;fill-opacity:1;stroke-width:0.264583"
-          x="40.922894"
+          x="49"
           y="46.587742"
+          text-anchor="end"
           id="text9"><tspan
             id="tspan9"
             style="stroke-width:0.264583"
-            x="40.922894"
-            y="46.587742">: {{ boardData.score_top < 10 ? ' ' + boardData.score_top : boardData.score_top }}</tspan></text>
+            x="49"
+            y="46.587742">{{ boardData.score_top }}</tspan></text>
         <text
           xml:space="preserve"
           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.5861px;font-family:'Meiryo UI';-inkscape-font-specification:'Meiryo UI Bold Italic';fill:#c8c8c8;fill-opacity:1;stroke-width:0.264583"
-          x="40.922894"
+          x="49"
           y="53.910057"
+          text-anchor="end"
           id="text9-5"><tspan
             id="tspan9-5"
             style="stroke-width:0.264583"
-            x="40.922894"
-            y="53.910057">: {{ boardData.score_bottom < 10 ? ' ' + boardData.score_bottom : boardData.score_bottom }}</tspan></text>
+            x="49"
+            y="53.910057">{{ boardData.score_bottom }}</tspan></text>
         <path v-if="boardData.first_base"
           style="fill:#ffff00;fill-opacity:1;stroke-width:0.264583"
           d="m 52.791246,77.482778 c 0.0058,-0.665178 8.824026,-9.330703 9.489205,-9.324894 0.665179,0.0058 9.330704,8.824026 9.324895,9.489205 -0.0058,0.665179 -8.824027,9.330704 -9.489206,9.324895 -0.665179,-0.0058 -9.330704,-8.824027 -9.324894,-9.489206 z"
@@ -173,6 +179,18 @@ const scoreboardComponent = {
   </div>
   `,
   computed: {
+    teamTopLines() {
+      return this.getTeamLines(this.boardData?.team_top);
+    },
+    teamBottomLines() {
+      return this.getTeamLines(this.boardData?.team_bottom);
+    },
+    teamFontSize() {
+      return this.getTeamFontSize([
+        ...this.teamTopLines,
+        ...this.teamBottomLines,
+      ]);
+    },
     inningMsg() {
       if (!this.boardData || this.boardData.game_inning === undefined)
         return "";
@@ -195,6 +213,18 @@ const scoreboardComponent = {
         this.boardData.game_inning >= 1 &&
         this.boardData.game_inning <= this.boardData.last_inning
       );
+    },
+  },
+  methods: {
+    getTeamLines(teamName) {
+      return String(teamName ?? "").split(/\\n|\r?\n/);
+    },
+    getTeamFontSize(teamLines) {
+      const characterCount = Math.max(
+        ...teamLines.map((line) => Array.from(line).length),
+      );
+      const fontSize = 17.5 / Math.max(5, characterCount - 2);
+      return `${fontSize}px`;
     },
   },
 };
